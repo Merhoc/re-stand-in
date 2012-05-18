@@ -1,4 +1,21 @@
 /*
+ * Copyright (C) 2012 Heiko Metzger <www.heikometzger.de>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+/*
  * re-stand-in
  *
  * Heiko Metzger
@@ -8,45 +25,10 @@
 
 #include "rsi.h"
 #include <QtGui>
-#include <QFileDialog>
 
 rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     setupUi(this);
 
-    init();
-
-    connect(button_uw, SIGNAL(clicked()), this, SLOT(choose_uw()));
-    connect(button_uw_2, SIGNAL(clicked()), this, SLOT(choose_uw2()));
-    connect(button_muster, SIGNAL(clicked()), this, SLOT(choose_muster()));
-    connect(button_ok, SIGNAL(clicked()), this, SLOT(visible()));
-    connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
-
-    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(visible()));
-}
-
-rsi::~rsi()
-{
-}
-
-void rsi::choose_uw() {
-    input_uw->insert(QFileDialog::getOpenFileName(this, tr("Datei waehlen..."), "", tr("HTML Dateien (*.htm *.html)")));
-}
-void rsi::choose_uw2() {
-    input_uw_2->insert(QFileDialog::getOpenFileName(this, tr("Datei waehlen..."), "", tr("HTML Dateien (*.htm *.html)")));
-}
-void rsi::choose_muster() {
-    input_muster->insert(QFileDialog::getOpenFileName(this, tr("Datei oeffnen..."), "", tr("Konfiguration (*.conf)")));
-}
-
-void rsi::visible() {
-    this->setVisible(!this->isVisible());
-}
-
-void rsi::quit() {
-    QApplication::quit();
-}
-
-void rsi::init() {
     setWindowIconText("Re-stand-in");
     setWindowIcon(QIcon(":/images/icon.svg"));
 
@@ -69,8 +51,41 @@ void rsi::init() {
     trayIcon->setContextMenu(trayIconMenu);
     trayIcon->setIcon(QIcon(":/images/stopped.svg"));
     trayIcon->show();
+
+    connect(button_uw, SIGNAL(clicked()), this, SLOT(choose_uw()));
+    connect(button_uw_2, SIGNAL(clicked()), this, SLOT(choose_uw2()));
+    connect(button_muster, SIGNAL(clicked()), this, SLOT(choose_muster()));
+    connect(button_ok, SIGNAL(clicked()), this, SLOT(visible()));
+    connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
+
+    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(visible()));
 }
 
+rsi::~rsi()
+{
+}
+
+// Aktionen im Einstellungsfenster
+void rsi::choose_uw() {
+    input_uw->insert(QFileDialog::getOpenFileName(this, tr("Datei waehlen..."), "", tr("HTML Dateien (*.htm *.html)")));
+}
+void rsi::choose_uw2() {
+    input_uw_2->insert(QFileDialog::getOpenFileName(this, tr("Datei waehlen..."), "", tr("HTML Dateien (*.htm *.html)")));
+}
+void rsi::choose_muster() {
+    input_muster->insert(QFileDialog::getOpenFileName(this, tr("Datei oeffnen..."), "", tr("Konfiguration (*.conf)")));
+}
+
+// Mehrfach genutzte Funktionen
+void rsi::visible() {
+    this->setVisible(!this->isVisible());
+}
+
+void rsi::quit() {
+    QApplication::quit();
+}
+
+// Aktionen im TrayIconMenu
 void rsi::startstop() {
     running = !running;
 
