@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'rsi.ui'
 **
-** Created: Mon 7. May 21:06:24 2012
+** Created: Fri May 18 22:51:20 2012
 **      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
