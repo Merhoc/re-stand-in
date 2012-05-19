@@ -41,6 +41,7 @@ class rsi : public QMainWindow, Ui::rsi
     public:
         rsi(QMainWindow *parent = 0);
         ~rsi();
+        void write_log(QString message);
 
     private slots:
         void choose_uw();
@@ -53,8 +54,6 @@ class rsi : public QMainWindow, Ui::rsi
         void quit();
 
     private:
-        void write_log(QString message);
-
         QSystemTrayIcon *trayIcon;
         QMenu *trayIconMenu;
 

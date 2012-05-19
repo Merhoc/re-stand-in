@@ -87,6 +87,9 @@ void rsi::visible() {
 }
 
 void rsi::quit() {
+    if(running) {
+        startstop();
+    }
     QApplication::quit();
 }
 
@@ -94,7 +97,7 @@ void rsi::quit() {
 void rsi::startstop() {
     running = !running;
 
-    trayIcon->showMessage(tr("re-stand-in"), running?tr("Dienst gestartet."):tr("Dienst gestoppt."));
+    write_log(running?tr("Dienst gestartet."):tr("Dienst gestoppt."));
     trayIcon->setIcon(running?QIcon(":/images/icon.svg"):QIcon(":/images/stopped.svg"));
 
     checkbox_active->setChecked(running);
@@ -103,4 +106,5 @@ void rsi::startstop() {
 // Private Funktionen:
 void rsi::write_log(QString message) {
     log->appendPlainText(QDateTime::currentDateTime().toString() + ": " + message);
+    trayIcon->showMessage(tr("re-stand-in"), message);
 }
