@@ -52,6 +52,7 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     trayIcon->setIcon(QIcon(":/images/stopped.svg"));
     trayIcon->show();
 
+    connect(checkbox_active, SIGNAL(clicked()), this, SLOT(startstop()));
     connect(button_uw, SIGNAL(clicked()), this, SLOT(choose_uw()));
     connect(button_uw_2, SIGNAL(clicked()), this, SLOT(choose_uw2()));
     connect(button_muster, SIGNAL(clicked()), this, SLOT(choose_muster()));
@@ -59,6 +60,8 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
 
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(visible()));
+
+    write_log("Initialisierung abgeschlossen.");
 }
 
 rsi::~rsi()
@@ -79,6 +82,8 @@ void rsi::choose_muster() {
 // Mehrfach genutzte Funktionen
 void rsi::visible() {
     this->setVisible(!this->isVisible());
+    this->activateWindow();
+    this->raise();
 }
 
 void rsi::quit() {
@@ -89,6 +94,13 @@ void rsi::quit() {
 void rsi::startstop() {
     running = !running;
 
-    trayIcon->showMessage(tr("Start/Stopp"), running?tr("Dienst gestartet."):tr("Dienst gestoppt."));
+    trayIcon->showMessage(tr("re-stand-in"), running?tr("Dienst gestartet."):tr("Dienst gestoppt."));
     trayIcon->setIcon(running?QIcon(":/images/icon.svg"):QIcon(":/images/stopped.svg"));
+
+    checkbox_active->setChecked(running);
+}
+
+// Private Funktionen:
+void rsi::write_log(QString message) {
+    log->appendPlainText(QDateTime::currentDateTime().toString() + ": " + message);
 }
