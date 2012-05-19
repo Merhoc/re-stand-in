@@ -53,6 +53,8 @@ class rsi : public QMainWindow, Ui::rsi
         void quit();
 
     private:
+        void write_log(QString message);
+
         QSystemTrayIcon *trayIcon;
         QMenu *trayIconMenu;
 
