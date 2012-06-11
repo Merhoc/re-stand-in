@@ -20,7 +20,7 @@
  *
  * Heiko Metzger
  * 07.05.2012
- * rsi.cpp
+ * main.cpp
  */
 
 #include <QtGui>

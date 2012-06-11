@@ -28,6 +28,8 @@
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
 #include "ui_rsi.h"
 
 namespace Ui {
@@ -46,10 +48,9 @@ class rsi : public QMainWindow, Ui::rsi
     private slots:
         void choose_uw();
         void choose_uw2();
-        void choose_muster();
         void visible();
 
-        void startstop();
+        void startstop(bool writeSettings = true);
 
         void quit();
 
@@ -61,7 +62,12 @@ class rsi : public QMainWindow, Ui::rsi
         QAction *startstopAction;
         QAction *quitAction;
 
+        QSqlDatabase db;
+        QSqlQuery query;
+
         bool running;
+
+        void loadSettings();
 };
 
 #endif // RSI_H
