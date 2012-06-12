@@ -27,9 +27,9 @@
 #define RSI_H
 
 #include <QMainWindow>
+#include <QtGui>
 #include <QSystemTrayIcon>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlQuery>
+#include <QtSql>
 #include "ui_rsi.h"
 
 namespace Ui {

@@ -24,12 +24,7 @@
  */
 
 #include "rsi.h"
-#include <QtGui>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlRecord>
-#include <QtSql/QSqlResult>
-#include <QtSql/QSqlError>
+#include<QDebug>
 
 rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     setupUi(this);
