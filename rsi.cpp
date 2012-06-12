@@ -40,10 +40,10 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     running = false;
 
     db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(":settings:");
+    db.setDatabaseName("rsi.SQLite3");
     if(!db.open()) {
         QMessageBox::critical(0, tr("Kann Einstellungen nicht lesen/speichern!"),
-                              tr("Ein Problem mit der Datenbank ist aufgetreten!"),
+                              tr("Ein Problem mit der Datenbank ist aufgetreten!")+db.lastError().text(),
                               QMessageBox::Cancel, QMessageBox::NoButton);
         this->quit();
     }
