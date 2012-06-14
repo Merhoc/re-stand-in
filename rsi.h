@@ -30,6 +30,7 @@
 #include <QtGui>
 #include <QSystemTrayIcon>
 #include <QtSql>
+#include <QFile>
 #include "ui_rsi.h"
 
 namespace Ui {
@@ -48,9 +49,13 @@ class rsi : public QMainWindow, Ui::rsi
     private slots:
         void choose_uw();
         void choose_uw2();
+        void change_dform();
+        void change_int();
         void visible();
 
         void startstop(bool writeSettings = true);
+        void parser1();
+        void parser2();
 
         void quit();
 
@@ -65,9 +70,20 @@ class rsi : public QMainWindow, Ui::rsi
         QSqlDatabase db;
         QSqlQuery query;
 
+        QTimer * uwtimer1, * uwtimer2;
+
+        FILE * uwf1, uwf2;
+        QFileInfo uwinfo1, uwinfo2;
+        QFile uwfile1, uwfile2;
+
+        QString date;
+
         bool running;
 
         void loadSettings();
+        void parser(QString filename);
+
+        QString getFilename(QString raw);
 };
 
 #endif // RSI_H
