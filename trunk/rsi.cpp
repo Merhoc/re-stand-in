@@ -74,6 +74,10 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     uwtimer2 = new QTimer(this);
     connect(uwtimer2, SIGNAL(timeout()), this, SLOT(parser2()));
 
+    crontimer = new QTimer(this);
+    connect(crontimer, SIGNAL(timeout()), this, SLOT(cron()));
+    crontimer->start(24 * 60 * 60 * 1000);                       // Alle 24h Reinigungsarbeiten ausführen
+
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(visible()));
 
     loadSettings();                                                         // Load Settings from Database
@@ -127,6 +131,25 @@ void rsi::loadSettings() {
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('sh', '0')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('dform', '')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('int', '5')");
+        query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('header', '"
+                   "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\r\n"
+                   "       \"http://www.w3.org/TR/html4/loose.dtd\">\r\n"
+                   "<html>\r\n"
+                   "<head>\r\n"
+                   "<title>Vertretungsplan</title>\r\n"
+                   "</head>\r\n"
+                   "<body>\r\n')");
+        query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('footer', '\r\n"
+                   "</body>\r\n"
+                   "</html>')");
+
+        if(!query.exec("CREATE TABLE `files` ("
+                   "    `filename`   VARCHAR(128) NOT NULL,"
+                   "    `lastchange` VARCHAR(128) NOT NULL"
+                   ")")) {
+            write_log(query.lastError().text());
+        }
+        visible();
     }
 }
 
@@ -167,6 +190,10 @@ void rsi::quit() {
     QApplication::quit();
 }
 
+void rsi::cron() {
+    // Datenbankbereinigung:
+}
+
 // Aktionen im TrayIconMenu
 void rsi::startstop(bool writeSettings) {
     running = !running;
@@ -177,6 +204,8 @@ void rsi::startstop(bool writeSettings) {
         button_uw->setEnabled(false);
         input_uw_2->setEnabled(false);
         button_uw_2->setEnabled(false);
+        input_dform->setEnabled(false);
+        input_int->setEnabled(false);
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
             if(uwinfo1.exists()) {
@@ -197,7 +226,7 @@ void rsi::startstop(bool writeSettings) {
         }else{
             write_log("Überwachung 2 nicht aktiv (keine Datei angegeben).");
         }
-        write_log("Dienst gestartet.");
+        write_log("Dienst gestartet.", true);
     }else{
         // Ueberwachung stoppen:
         uwtimer1->stop();
@@ -206,7 +235,9 @@ void rsi::startstop(bool writeSettings) {
         button_uw->setEnabled(true);
         input_uw_2->setEnabled(true);
         button_uw_2->setEnabled(true);
-        write_log("Dienst gestoppt.");
+        input_dform->setEnabled(true);
+        input_int->setEnabled(true);
+        write_log("Dienst gestoppt.", true);
     }
     if(writeSettings) {
         QString sql = "UPDATE `settings` SET `data` = '";
@@ -221,16 +252,16 @@ void rsi::startstop(bool writeSettings) {
 }
 
 // Private Funktionen:
-void rsi::write_log(QString message) {
+void rsi::write_log(QString message, bool tray) {
     log->appendPlainText(QDateTime::currentDateTime().toString() + ": " + message);
-    trayIcon->showMessage(tr("re-stand-in"), message, QSystemTrayIcon::Information, 5000);
+    if(tray)
+        trayIcon->showMessage(tr("re-stand-in"), message, QSystemTrayIcon::Information, 5000);
 }
 QString rsi::getFilename(QString raw) {
-    if(raw.contains("%1")) {
+    if(raw.contains("%1"))
         return raw.arg(QDateTime::currentDateTime().toString(input_dform->text()));
-    }else{
+    else
         return raw;
-    }
 }
 
 // Datei Ueberpruefen:
@@ -243,6 +274,65 @@ void rsi::parser2() {
 
 void rsi::parser(QString filename) {
     QFileInfo fileinfo;
+    QString line, newfile;
+    QByteArray output;
+    newfile = filename;
+    newfile.replace(".", "_rsi.");
+    bool parse = false;
     fileinfo.setFile(filename);
     //Überprüfung auf aktualität, evtl Aktualisierung
+    if(fileinfo.isReadable()) {
+        if(!query.exec("SELECT `lastchange` FROM `files` WHERE `filename` = '"+ filename +"'")) {
+            write_log(query.lastError().text());
+        }
+        if(!query.next()) {
+            // Noch nie verarbeitet.
+            if(!query.exec("INSERT INTO `files` (`filename`, `lastchange`) VALUES ('"+filename+"', '"+fileinfo.lastModified().toString()+"')")) {
+                write_log(query.lastError().text());
+            }
+            parse = true;
+        }else{
+            if(query.value(query.record().indexOf("lastchange")) != fileinfo.lastModified().toString()) {
+                parse = true;
+            }
+        }
+        if(parse) {
+            // Verarbeiten:
+            if(!query.exec("UPDATE `files` SET `lastchange` = '"+fileinfo.lastModified().toString()+"' WHERE `filename` = '"+filename+"'")) {
+                write_log(query.lastError().text());
+            }
+
+            if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
+                write_log(query.lastError().text());
+            }
+            query.next();
+            output = query.value(query.record().indexOf("data")).toByteArray();
+
+            pfile.setFileName(filename);
+            pfile.open(QIODevice::ReadOnly);
+            QTextStream in(&pfile);
+            do {
+                line = in.readLine();
+                output += line + tr("\r\n");
+            } while (!line.isNull());
+            if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
+                write_log(query.lastError().text());
+            }
+            query.next();
+            output += query.value(query.record().indexOf("data")).toByteArray();
+            pfile.close();
+            fileinfo.setFile(newfile);
+            if(fileinfo.exists()) {
+                pfile.remove(newfile);
+            }
+            pfile.setFileName(newfile);
+            pfile.open(QIODevice::WriteOnly);
+            if(pfile.write(output) == -1) {
+                write_log("Fehler beim Schreiben der Ausgabedatei: "+pfile.errorString());
+            }
+            pfile.close();
+            write_log(filename + " verarbeitet.");
+            write_log("Ziel: " + newfile);
+        }
+    }
 }
