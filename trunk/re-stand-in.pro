@@ -17,9 +17,4 @@ HEADERS  += rsi.h
 
 FORMS    += rsi.ui
 
-#RC_FILE += ressources/ressources.rc
-
-RESOURCES += \
-    resources.qrc
-
-OTHER_FILES +=
+RESOURCES += resources.qrc

@@ -54,7 +54,7 @@
            <x>0</x>
            <y>10</y>
            <width>611</width>
-           <height>91</height>
+           <height>106</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="form">
@@ -69,7 +69,11 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLineEdit" name="input_uw_2"/>
+           <widget class="QLineEdit" name="input_uw_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
           <item row="2" column="2">
            <widget class="QPushButton" name="button_uw_2">
@@ -86,7 +90,11 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLineEdit" name="input_uw"/>
+           <widget class="QLineEdit" name="input_uw">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
           <item row="0" column="2">
            <widget class="QPushButton" name="button_uw">
@@ -94,6 +102,163 @@
              <string>...</string>
             </property>
            </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_dform">
+            <property name="text">
+             <string>Datumsformat:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="input_dform"/>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_int">
+            <property name="text">
+             <string>Intervall:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="input_int">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>3600</number>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="headerfooter">
+        <attribute name="title">
+         <string>Kopf/Fuß</string>
+        </attribute>
+        <widget class="QWidget" name="horizontalLayoutWidget">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>611</width>
+           <height>361</height>
+          </rect>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QPlainTextEdit" name="headText">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line_2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPlainTextEdit" name="footText">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <widget class="QLabel" name="headLabel">
+              <property name="text">
+               <string>Kopf</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="headSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="headSave">
+              <property name="text">
+               <string>Speichern</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="headReset">
+              <property name="text">
+               <string>Zurücksetzen</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="Line" name="line">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="footLabel">
+              <property name="text">
+               <string>Fuß</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="footSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="footSave">
+              <property name="text">
+               <string>Speichern</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="footReset">
+              <property name="text">
+               <string>Zurücksetzen</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -234,7 +399,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>640</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
