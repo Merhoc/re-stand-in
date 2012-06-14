@@ -44,7 +44,7 @@ class rsi : public QMainWindow, Ui::rsi
     public:
         rsi(QMainWindow *parent = 0);
         ~rsi();
-        void write_log(QString message);
+        void write_log(QString message, bool tray = false);
 
     private slots:
         void choose_uw();
@@ -56,6 +56,8 @@ class rsi : public QMainWindow, Ui::rsi
         void startstop(bool writeSettings = true);
         void parser1();
         void parser2();
+
+        void cron();
 
         void quit();
 
@@ -72,11 +74,10 @@ class rsi : public QMainWindow, Ui::rsi
 
         QTimer * uwtimer1, * uwtimer2;
 
-        FILE * uwf1, uwf2;
         QFileInfo uwinfo1, uwinfo2;
-        QFile uwfile1, uwfile2;
+        QFile pfile;
 
-        QString date;
+        QTimer * crontimer;
 
         bool running;
 
