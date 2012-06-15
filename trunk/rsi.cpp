@@ -66,6 +66,8 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     connect(button_uw_2, SIGNAL(clicked()), this, SLOT(choose_uw2()));
     connect(input_dform, SIGNAL(textChanged(QString)), this, SLOT(change_dform()));
     connect(input_int, SIGNAL(valueChanged(int)), this, SLOT(change_int()));
+    connect(headText, SIGNAL(textChanged()), this, SLOT(change_header()));
+    connect(footText, SIGNAL(textChanged()), this, SLOT(change_footer()));
     connect(button_ok, SIGNAL(clicked()), this, SLOT(visible()));
     connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
 
@@ -151,6 +153,16 @@ void rsi::loadSettings() {
         }
         visible();
     }
+    if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
+        write_log(query.lastError().text());
+    }
+    query.next();
+    headText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
+    if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
+        write_log(query.lastError().text());
+    }
+    query.next();
+    footText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
 }
 
 // Aktionen im Einstellungsfenster
@@ -171,6 +183,16 @@ void rsi::change_dform() {
 }
 void rsi::change_int() {
     if(!query.exec("UPDATE `settings` SET `data` = '" + input_int->text() + "' WHERE `setting` = 'int'")) {
+        write_log(query.lastError().text());
+    }
+}
+void rsi::change_header() {
+    if(!query.exec("UPDATE `settings` SET `data` = '" + headText->toPlainText() + "' WHERE `setting` = 'header'")) {
+        write_log(query.lastError().text());
+    }
+}
+void rsi::change_footer() {
+    if(!query.exec("UPDATE `settings` SET `data` = '" + footText->toPlainText() + "' WHERE `setting` = 'footer'")) {
         write_log(query.lastError().text());
     }
 }
@@ -206,10 +228,13 @@ void rsi::startstop(bool writeSettings) {
         button_uw_2->setEnabled(false);
         input_dform->setEnabled(false);
         input_int->setEnabled(false);
+        headText->setEnabled(false);
+        footText->setEnabled(false);
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
             if(uwinfo1.exists()) {
                 uwtimer1->start(input_int->value() * 1000);
+                parser1();
             }else{
                 write_log("Fehler: Zu überwachende Datei 1 existiert nicht!");
             }
@@ -220,6 +245,7 @@ void rsi::startstop(bool writeSettings) {
             uwinfo2.setFile(getFilename(input_uw_2->text()));
             if(uwinfo2.exists()) {
                 uwtimer2->start(input_int->value() * 1000);
+                parser2();
             }else{
                 write_log("Fehler: Zu überwachende Datei 2 existiert nicht!");
             }
@@ -237,6 +263,8 @@ void rsi::startstop(bool writeSettings) {
         button_uw_2->setEnabled(true);
         input_dform->setEnabled(true);
         input_int->setEnabled(true);
+        headText->setEnabled(true);
+        footText->setEnabled(true);
         write_log("Dienst gestoppt.", true);
     }
     if(writeSettings) {
