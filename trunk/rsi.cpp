@@ -66,8 +66,12 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     connect(button_uw_2, SIGNAL(clicked()), this, SLOT(choose_uw2()));
     connect(input_dform, SIGNAL(textChanged(QString)), this, SLOT(change_dform()));
     connect(input_int, SIGNAL(valueChanged(int)), this, SLOT(change_int()));
-    connect(headText, SIGNAL(textChanged()), this, SLOT(change_header()));
-    connect(footText, SIGNAL(textChanged()), this, SLOT(change_footer()));
+    connect(headText, SIGNAL(textChanged()), this, SLOT(mod_header()));
+    connect(footText, SIGNAL(textChanged()), this, SLOT(mod_footer()));
+    connect(headSave, SIGNAL(clicked()), this, SLOT(change_header()));
+    connect(footSave, SIGNAL(clicked()), this, SLOT(change_footer()));
+    connect(headReset, SIGNAL(clicked()), this, SLOT(reset_header()));
+    connect(footReset, SIGNAL(clicked()), this, SLOT(reset_footer()));
     connect(button_ok, SIGNAL(clicked()), this, SLOT(visible()));
     connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
 
@@ -170,16 +174,8 @@ void rsi::loadSettings() {
         visible();
     }
     // Werte von Eingabefeldern laden:
-    if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
-        write_log(query.lastError().text());
-    }
-    query.next();
-    headText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
-    if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
-        write_log(query.lastError().text());
-    }
-    query.next();
-    footText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
+    reset_header();
+    reset_footer();
     // Tabellen:
     query.exec("SELECT `search`, `set` FROM `static`");
     statrows = query.size() + 1;
@@ -246,11 +242,43 @@ void rsi::change_header() {
     if(!query.exec("UPDATE `settings` SET `data` = '" + headText->toPlainText() + "' WHERE `setting` = 'header'")) {
         write_log(query.lastError().text());
     }
+    headSave->setEnabled(false);
+    headReset->setEnabled(false);
 }
 void rsi::change_footer() {
     if(!query.exec("UPDATE `settings` SET `data` = '" + footText->toPlainText() + "' WHERE `setting` = 'footer'")) {
         write_log(query.lastError().text());
     }
+    footSave->setEnabled(false);
+    headReset->setEnabled(false);
+}
+void rsi::mod_header() {
+    headSave->setEnabled(true);
+    headReset->setEnabled(true);
+}
+void rsi::mod_footer() {
+    footSave->setEnabled(true);
+    footReset->setEnabled(true);
+}
+void rsi::reset_header() {
+    if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
+        write_log(query.lastError().text());
+    }
+    query.next();
+    headText->clear();
+    headText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
+    headSave->setEnabled(false);
+    headReset->setEnabled(false);
+}
+void rsi::reset_footer() {
+    if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
+        write_log(query.lastError().text());
+    }
+    query.next();
+    footText->clear();
+    footText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
+    footSave->setEnabled(false);
+    footReset->setEnabled(false);
 }
 
 // Mehrfach genutzte Funktionen
@@ -270,10 +298,24 @@ void rsi::quit() {
 
 void rsi::cron() {
     // Datenbankbereinigung:
+    if(running) {
+        // Derzeit verarbeitete Dateien unangetastet lassen:
+        QString sql = "DELETE FROM `files` WHERE"
+                "   `filename` != '" + input_uw->text() + "' AND"
+                "   `filename` != '" + input_uw_2->text() + "'";
+        if(!query.exec(sql)) {
+            write_log(query.lastError().text());
+        }
+    }else{
+        if(!query.exec("DELETE FROM `files` WHERE 1")) {
+            write_log(query.lastError().text());
+        }
+    }
 }
 
 // Aktionen im TrayIconMenu
 void rsi::startstop(bool writeSettings) {
+    cron();
     running = !running;
 
     if(running) {
@@ -286,6 +328,8 @@ void rsi::startstop(bool writeSettings) {
         input_int->setEnabled(false);
         headText->setEnabled(false);
         footText->setEnabled(false);
+        table_static->setEnabled(false);
+        table_dynamic->setEnabled(false);
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
             if(uwinfo1.exists()) {
@@ -321,6 +365,8 @@ void rsi::startstop(bool writeSettings) {
         input_int->setEnabled(true);
         headText->setEnabled(true);
         footText->setEnabled(true);
+        table_static->setEnabled(true);
+        table_dynamic->setEnabled(true);
         write_log("Dienst gestoppt.", true);
     }
     if(writeSettings) {
@@ -381,6 +427,12 @@ void rsi::parser(QString filename) {
             }
         }
         if(parse) {
+            // Array fuer dynamischen Inhalt vorbereiten:
+            query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
+            unsigned int phase[query.size()];
+            for(int i = 0; i < query.size(); i++) {
+                phase[i] = 0;
+            }
             // Verarbeiten:
             if(!query.exec("UPDATE `files` SET `lastchange` = '"+fileinfo.lastModified().toString()+"' WHERE `filename` = '"+filename+"'")) {
                 write_log(query.lastError().text());
@@ -397,6 +449,21 @@ void rsi::parser(QString filename) {
             QTextStream in(&pfile);
             do {
                 line = in.readLine();
+                query.exec("SELECT `search`, `set` FROM `static`");
+                while(query.next()) {
+                    line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString());
+                }
+                query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
+                while(query.next()) {
+                    if(line.contains(query.value(query.record().indexOf("search")).toString())) {
+                        if(phase[query.value(query.record().indexOf("rowid")).toInt()] == query.value(query.record().indexOf("maxval"))) {
+                            phase[query.value(query.record().indexOf("rowid")).toInt()] = 0;
+                        }else{
+                            phase[query.value(query.record().indexOf("rowid")).toInt()]++;
+                        }
+                    }
+                    line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString().arg(phase[query.value(query.record().indexOf("rowid")).toInt()]));
+                }
                 output += line + tr("\r\n");
             } while (!line.isNull());
             if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
