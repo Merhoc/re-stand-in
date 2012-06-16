@@ -29,6 +29,9 @@
 #include <QMainWindow>
 #include <QtGui>
 #include <QSystemTrayIcon>
+#include <QTableView>
+#include <QStandardItem>
+#include <QStandardItemModel>
 #include <QtSql>
 #include <QFile>
 #include "ui_rsi.h"
@@ -64,6 +67,8 @@ class rsi : public QMainWindow, Ui::rsi
         void quit();
 
     private:
+        int statrows, dynrows, row;
+        QStandardItemModel *statmodel, *dynmodel;
         QSystemTrayIcon *trayIcon;
         QMenu *trayIconMenu;
 

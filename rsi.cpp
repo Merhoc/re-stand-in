@@ -151,8 +151,25 @@ void rsi::loadSettings() {
                    ")")) {
             write_log(query.lastError().text());
         }
+        if(!query.exec("CREATE TABLE `static` ("
+                   "    `search`   TEXT NOT NULL,"
+                   "    `set` TEXT NOT NULL"
+                   ")")) {
+            write_log(query.lastError().text());
+        }
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('<p><big><b>', '<h1>')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('</b></big><br>', '</h1>')");
+        if(!query.exec("CREATE TABLE `dynamic` ("
+                   "    `search`   TEXT NOT NULL,"
+                   "    `set` TEXT NOT NULL,"
+                   "    `maxval` TINYINT NOT NULL"
+                   ")")) {
+            write_log(query.lastError().text());
+        }
+        query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES('<tr>', '<tr class=\"row%1\">', '1')");
         visible();
     }
+    // Werte von Eingabefeldern laden:
     if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
         write_log(query.lastError().text());
     }
@@ -163,6 +180,45 @@ void rsi::loadSettings() {
     }
     query.next();
     footText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
+    // Tabellen:
+    query.exec("SELECT `search`, `set` FROM `static`");
+    statrows = query.size() + 1;
+    statmodel = new QStandardItemModel(statrows, 2, this);
+    statmodel->setHorizontalHeaderItem(0, new QStandardItem(tr("Suchen")));
+    statmodel->setHorizontalHeaderItem(1, new QStandardItem(tr("Ersetzen")));
+    row = 0;
+    while(query.next()) {
+        statmodel->setItem(row, 0, new QStandardItem(query.value(query.record().indexOf("search")).toString()));
+        statmodel->setItem(row, 1, new QStandardItem(query.value(query.record().indexOf("set")).toString()));
+        row ++;
+    }
+    statmodel->setItem(row, 0, new QStandardItem("<neu>"));
+    statmodel->setItem(row, 1, new QStandardItem("<neu>"));
+    table_static->setModel(statmodel);
+    table_static->setColumnWidth(0, 250);
+    table_static->setColumnWidth(1, 340);
+
+    query.exec("SELECT `search`, `set`, `maxval` FROM `dynamic`");
+    dynrows = query.size() + 1;
+    dynmodel = new QStandardItemModel(dynrows, 3, this);
+    dynmodel->setHorizontalHeaderItem(0, new QStandardItem(tr("Suchen")));
+    dynmodel->setHorizontalHeaderItem(1, new QStandardItem(tr("Ersetzen")));
+    dynmodel->setHorizontalHeaderItem(2, new QStandardItem(tr("Zählen bis")));
+    row = 0;
+    while(query.next()) {
+        dynmodel->setItem(row, 0, new QStandardItem(query.value(query.record().indexOf("search")).toString()));
+        dynmodel->setItem(row, 1, new QStandardItem(query.value(query.record().indexOf("set")).toString()));
+        dynmodel->setItem(row, 2, new QStandardItem(query.value(query.record().indexOf("maxval")).toString()));
+        row ++;
+    }
+    dynmodel->setItem(row, 0, new QStandardItem("<neu>"));
+    dynmodel->setItem(row, 1, new QStandardItem("<neu>"));
+    dynmodel->setItem(row, 2, new QStandardItem("1"));
+    table_dynamic->setModel(dynmodel);
+    table_dynamic->setColumnWidth(0, 200);
+    table_dynamic->setColumnWidth(1, 300);
+    table_dynamic->setColumnWidth(2, 70);
+
 }
 
 // Aktionen im Einstellungsfenster
