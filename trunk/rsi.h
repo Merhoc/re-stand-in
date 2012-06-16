@@ -60,6 +60,8 @@ class rsi : public QMainWindow, Ui::rsi
         void mod_footer();
         void reset_header();
         void reset_footer();
+        void change_static(QStandardItem* item);
+        void change_dynamic(QStandardItem* item);
         void visible();
 
         void startstop(bool writeSettings = true);
