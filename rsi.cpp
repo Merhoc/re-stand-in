@@ -177,7 +177,7 @@ void rsi::loadSettings() {
     reset_header();
     reset_footer();
     // Tabellen:
-    query.exec("SELECT `search`, `set` FROM `static`");
+    query.exec("SELECT `search`, `set`, `rowid` FROM `static`");
     statrows = query.size() + 1;
     statmodel = new QStandardItemModel(statrows, 2, this);
     statmodel->setHorizontalHeaderItem(0, new QStandardItem(tr("Suchen")));
@@ -186,6 +186,8 @@ void rsi::loadSettings() {
     while(query.next()) {
         statmodel->setItem(row, 0, new QStandardItem(query.value(query.record().indexOf("search")).toString()));
         statmodel->setItem(row, 1, new QStandardItem(query.value(query.record().indexOf("set")).toString()));
+        statmodel->setItem(row, 2, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
+        statmodel->item(row, 2)->setEnabled(false);
         row ++;
     }
     statmodel->setItem(row, 0, new QStandardItem("<neu>"));
@@ -193,6 +195,7 @@ void rsi::loadSettings() {
     table_static->setModel(statmodel);
     table_static->setColumnWidth(0, 250);
     table_static->setColumnWidth(1, 340);
+    table_static->setColumnWidth(2, 0);
 
     query.exec("SELECT `search`, `set`, `maxval` FROM `dynamic`");
     dynrows = query.size() + 1;
@@ -214,7 +217,9 @@ void rsi::loadSettings() {
     table_dynamic->setColumnWidth(0, 200);
     table_dynamic->setColumnWidth(1, 300);
     table_dynamic->setColumnWidth(2, 70);
-
+    table_dynamic->setColumnWidth(3, 0);
+    connect(statmodel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(change_static(QStandardItem*)));
+    connect(dynmodel, SIGNAL(itemChanged(QStandardItem*)), this, SLOT(change_dynamic(QStandardItem*)));
 }
 
 // Aktionen im Einstellungsfenster
@@ -279,6 +284,71 @@ void rsi::reset_footer() {
     footText->appendPlainText(query.value(query.record().indexOf("data")).toByteArray());
     footSave->setEnabled(false);
     footReset->setEnabled(false);
+}
+void rsi::change_static(QStandardItem* item) {
+    // Item in Statisch-Tabelle geändert
+    if(item->text() != "<neu>") {
+        if(item->row() == statmodel->rowCount() - 1) {
+            // Neue Zeile
+            query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  +statmodel->item(item->row(), 0)->text() + "'");
+            if(query.next()) {
+                write_log("Statische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+            }else{
+                query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')");
+                query.exec("SELECT `rowid` FROM `static` WHERE `rowid` = '"  +statmodel->item(item->row(), 2)->text() + "'");
+                query.next();
+                statmodel->appendRow(new QStandardItem("<neu>"));
+                statmodel->setItem(item->row() + 1, 1, new QStandardItem("<neu>"));
+                statmodel->setItem(item->row(), 2, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
+                statmodel->item(item->row(), 2)->setEnabled(false);
+            }
+        }else{
+            // Zeile geändert
+            if(statmodel->item(item->row(), 0)->text() == "!") {
+                query.exec("DELETE FROM `static` WHERE `rowid` = '"  + statmodel->item(item->row(), 2)->text() + "'");
+                // ACHTUNG: ZEILE WIRD WEITER ANGEZEIGT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            }else{
+                query.exec("UPDATE `static` SET "
+                           "    `search` = '" + statmodel->item(item->row(), 0)->text() + "', "
+                           "    `set` = '"  +statmodel->item(item->row(), 1)->text() + "'"
+                           "WHERE `rowid` = '"  + statmodel->item(item->row(), 2)->text() + "'");
+            }
+        }
+    }
+}
+void rsi::change_dynamic(QStandardItem* item) {
+    // Item in Dynamisch-Tabellle geändert
+    if(item->row() == dynmodel->rowCount() - 1) {
+        // Neue Zeile
+        query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
+        if(query.next()) {
+            write_log("Dynamische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+        }else{
+            query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
+                       "    '" + statmodel->item(item->row(), 0)->text() + "',"
+                       "    '" + statmodel->item(item->row(), 1)->text() + "',"
+                       "    '" + statmodel->item(item->row(), 2)->text() + "'");
+            query.exec("SELECT `rowid` FROM `dynamic` WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
+            query.next();
+            dynmodel->appendRow(new QStandardItem("<neu>"));
+            dynmodel->setItem(item->row() + 1, 1, new QStandardItem("<neu>"));
+            dynmodel->setItem(item->row() + 1, 2, new QStandardItem("1"));
+            dynmodel->setItem(item->row(), 3, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
+            dynmodel->item(item->row(), 3)->setEnabled(false);
+        }
+    }else{
+        // Zeile geändert
+        if(dynmodel->item(item->row(), 0)->text() == "!") {
+            query.exec("DELETE FROM `dynamic` WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
+            // ACHTUNG: ZEILE WIRD WEITER ANGEZEIGT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        }else{
+            query.exec("UPDATE `dynamic` SET "
+                       "    `search` = '" + dynmodel->item(item->row(), 0)->text() + "',"
+                       "    `set` = '"  + dynmodel->item(item->row(), 1)->text() + "',"
+                       "    `maxval` = '" + dynmodel->item(item->row(), 2)->text() + "'"
+                       "WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
+        }
+    }
 }
 
 // Mehrfach genutzte Funktionen
