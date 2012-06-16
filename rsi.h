@@ -56,6 +56,10 @@ class rsi : public QMainWindow, Ui::rsi
         void change_int();
         void change_header();
         void change_footer();
+        void mod_header();
+        void mod_footer();
+        void reset_header();
+        void reset_footer();
         void visible();
 
         void startstop(bool writeSettings = true);
