@@ -102,6 +102,10 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
 
 rsi::~rsi()
 {
+    if(running) {
+        startstop(false);
+    }
+    query.exec("UPDATE `settings` SET `data` = '" + QDateTime::currentDateTime().toString() + "' WHERE `setting` = 'sh'");
 }
 
 void rsi::loadSettings() {
@@ -419,10 +423,6 @@ void rsi::visible() {
 }
 
 void rsi::quit() {
-    if(running) {
-        startstop(false);
-    }
-    query.exec("UPDATE `settings` SET `data` = '" + QDateTime::currentDateTime().toString() + "' WHERE `setting` = 'sh'");
     QApplication::quit();
 }
 
@@ -567,7 +567,7 @@ void rsi::parser(QString filename) {
             query.exec("SELECT `rowid` FROM `dynamic`");
             int rows = 0;
             while(query.next()) {
-                rows = query.value(query.record().indexOf("rowid"));
+                rows = query.value(query.record().indexOf("rowid")).toInt();
             }
             unsigned int phase[rows];
             for(int i = 0; i < rows; i++) {
