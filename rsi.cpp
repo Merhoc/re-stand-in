@@ -102,10 +102,6 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
 
 rsi::~rsi()
 {
-    if(running) {
-        startstop(false);
-    }
-    query.exec("UPDATE `settings` SET `data` = '" + QDateTime::currentDateTime().toString() + "' WHERE `setting` = 'sh'");
 }
 
 void rsi::loadSettings() {
@@ -423,6 +419,10 @@ void rsi::visible() {
 }
 
 void rsi::quit() {
+    if(running) {
+        startstop(false);
+    }
+    query.exec("UPDATE `settings` SET `data` = '" + QDateTime::currentDateTime().toString() + "' WHERE `setting` = 'sh'");
     QApplication::quit();
 }
 
