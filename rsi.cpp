@@ -63,7 +63,7 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     crontimer = new QTimer(this);
     crontimer->start(24 * 60 * 60 * 1000);                       // Alle 24h Reinigungsarbeiten ausführen
 
-    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(visible()));
+    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(tray_clicked(QSystemTrayIcon::ActivationReason)));
     connect(visibleAction, SIGNAL(triggered()), this, SLOT(visible()));
     connect(startstopAction, SIGNAL(triggered()), this, SLOT(startstop()));
     connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
@@ -159,15 +159,37 @@ void rsi::loadSettings() {
                    "        empty-cells: show;\r\n"
                    "    }\r\n"
                    "    .row0 {\r\n"
-                   "        background-color: #BBBBBB\r\n"
+                   "        background-color: #BBBBBB;\r\n"
                    "    }\r\n"
                    "    .row1 {\r\n"
-                   "        background-color: #FFFFFF\r\n"
+                   "        background-color: #FFFFFF;\r\n"
+                   "    }\r\n"
+                   "    .col0 {\r\n"
+                   "        width: 3em;\r\n"
+                   "    }\r\n"
+                   "    .col1 {\r\n"
+                   "        width: 3em;\r\n"
+                   "    }\r\n"
+                   "    .col2 {\r\n"
+                   "        width: 2em;\r\n"
+                   "    }\r\n"
+                   "    .col3 {\r\n"
+                   "        width: 3em;\r\n"
+                   "    }\r\n"
+                   "    .col4 {\r\n"
+                   "        width: 7em;\r\n"
+                   "    }\r\n"
+                   "    .col5 {\r\n"
+                   "        width: 10em;\r\n"
+                   "    }\r\n"
+                   "    .col6 {\r\n"
+                   "        width: 10em;\r\n"
                    "    }\r\n"
                    "</style>\r\n"
                    "</head>\r\n"
                    "<body>\r\n')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('footer', '\r\n"
+                   "    <hr>\r\n"
                    "</body>\r\n"
                    "</html>')");
 
@@ -200,6 +222,7 @@ void rsi::loadSettings() {
             write_log(query.lastError().text());
         }
         query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES('<tr>', '<tr class=\"row%1\">', '1')");
+        query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES('<th>', '<th class=\"col%1\">', '6')");
         visible();
     }
     // Werte von Eingabefeldern laden:
@@ -488,6 +511,12 @@ void rsi::startstop(bool writeSettings) {
     checkbox_active->setChecked(running);
 }
 
+void rsi::tray_clicked(QSystemTrayIcon::ActivationReason reason) {
+    if(reason != QSystemTrayIcon::Context) {
+        show();
+    }
+}
+
 // Private Funktionen:
 void rsi::write_log(QString message, bool tray) {
     log->appendPlainText(QDateTime::currentDateTime().toString() + ": " + message);
@@ -517,7 +546,7 @@ void rsi::parser(QString filename) {
     newfile.replace(".", "_rsi.");
     bool parse = false;
     fileinfo.setFile(filename);
-    //Überprüfung auf aktualität, evtl Aktualisierung
+    //Überprüfung auf aktualität, evtl. Aktualisierung
     if(fileinfo.isReadable()) {
         if(!query.exec("SELECT `lastchange` FROM `files` WHERE `filename` = '"+ filename +"'")) {
             write_log(query.lastError().text());
@@ -536,8 +565,12 @@ void rsi::parser(QString filename) {
         if(parse) {
             // Array fuer dynamischen Inhalt vorbereiten:
             query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
-            unsigned int phase[query.size()];
-            for(int i = 0; i < query.size(); i++) {
+            int rows = 0;
+            while(query.next()) {
+                rows ++;
+            }
+            unsigned int phase[rows];
+            for(int i = 0; i < rows; i++) {
                 phase[i] = 0;
             }
             // Verarbeiten:
