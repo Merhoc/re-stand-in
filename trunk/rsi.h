@@ -62,6 +62,8 @@ class rsi : public QMainWindow, Ui::rsi
         void reset_footer();
         void change_static(QStandardItem* item);
         void change_dynamic(QStandardItem* item);
+
+        void tray_clicked(QSystemTrayIcon::ActivationReason reason);
         void visible();
 
         void startstop(bool writeSettings = true);
