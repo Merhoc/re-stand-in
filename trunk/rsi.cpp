@@ -39,21 +39,18 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
         QMessageBox::critical(0, tr("Kann Einstellungen nicht lesen/speichern!"),
                               tr("Ein Problem mit der Datenbank ist aufgetreten!")+db.lastError().text(),
                               QMessageBox::Cancel, QMessageBox::NoButton);
-        this->quit();
+        quit();
     }
     query = QSqlQuery(db);
 
     trayIconMenu = new QMenu(this);
     visibleAction = new QAction(tr("Fenster Zeigen"), this);
-    connect(visibleAction, SIGNAL(triggered()), this, SLOT(visible()));
+
     trayIconMenu->addAction(visibleAction);
     startstopAction = new QAction(tr("Start/Stopp"), this);
-    connect(startstopAction, SIGNAL(triggered()), this, SLOT(startstop()));
     trayIconMenu->addAction(startstopAction);
-
     trayIconMenu->addSeparator();
     quitAction = new QAction(tr("Beenden"), this);
-    connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
     trayIconMenu->addAction(quitAction);
 
     trayIcon = new QSystemTrayIcon(this);
@@ -61,30 +58,36 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     trayIcon->setIcon(QIcon(":/images/stopped.svg"));
     trayIcon->show();
 
+    uwtimer1 = new QTimer(this);
+    uwtimer2 = new QTimer(this);
+    crontimer = new QTimer(this);
+    crontimer->start(24 * 60 * 60 * 1000);                       // Alle 24h Reinigungsarbeiten ausführen
+
+    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(visible()));
+    connect(visibleAction, SIGNAL(triggered()), this, SLOT(visible()));
+    connect(startstopAction, SIGNAL(triggered()), this, SLOT(startstop()));
+    connect(quitAction, SIGNAL(triggered()), this, SLOT(quit()));
+
     connect(checkbox_active, SIGNAL(clicked()), this, SLOT(startstop()));
+    connect(button_ok, SIGNAL(clicked()), this, SLOT(visible()));
+    connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
+
     connect(button_uw, SIGNAL(clicked()), this, SLOT(choose_uw()));
     connect(button_uw_2, SIGNAL(clicked()), this, SLOT(choose_uw2()));
     connect(input_dform, SIGNAL(textChanged(QString)), this, SLOT(change_dform()));
     connect(input_int, SIGNAL(valueChanged(int)), this, SLOT(change_int()));
+
     connect(headText, SIGNAL(textChanged()), this, SLOT(mod_header()));
     connect(footText, SIGNAL(textChanged()), this, SLOT(mod_footer()));
     connect(headSave, SIGNAL(clicked()), this, SLOT(change_header()));
     connect(footSave, SIGNAL(clicked()), this, SLOT(change_footer()));
     connect(headReset, SIGNAL(clicked()), this, SLOT(reset_header()));
     connect(footReset, SIGNAL(clicked()), this, SLOT(reset_footer()));
-    connect(button_ok, SIGNAL(clicked()), this, SLOT(visible()));
-    connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
 
-    uwtimer1 = new QTimer(this);
     connect(uwtimer1, SIGNAL(timeout()), this, SLOT(parser1()));
-    uwtimer2 = new QTimer(this);
     connect(uwtimer2, SIGNAL(timeout()), this, SLOT(parser2()));
 
-    crontimer = new QTimer(this);
     connect(crontimer, SIGNAL(timeout()), this, SLOT(cron()));
-    crontimer->start(24 * 60 * 60 * 1000);                       // Alle 24h Reinigungsarbeiten ausführen
-
-    connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(visible()));
 
     loadSettings();                                                         // Load Settings from Database
 
@@ -143,6 +146,25 @@ void rsi::loadSettings() {
                    "<html>\r\n"
                    "<head>\r\n"
                    "<title>Vertretungsplan</title>\r\n"
+                   "<style type=\"text/css\" media=\"screen\">\r\n"
+                   "    table {\r\n"
+                   "        border-collapse: collapse;\r\n"
+                   "    }\r\n"
+                   "    th {\r\n"
+                   "        border: 1px solid #000000;\r\n"
+                   "        empty-cells: show;\r\n"
+                   "    }\r\n"
+                   "    td {\r\n"
+                   "        border: 1px solid #000000;\r\n"
+                   "        empty-cells: show;\r\n"
+                   "    }\r\n"
+                   "    .row0 {\r\n"
+                   "        background-color: #BBBBBB\r\n"
+                   "    }\r\n"
+                   "    .row1 {\r\n"
+                   "        background-color: #FFFFFF\r\n"
+                   "    }\r\n"
+                   "</style>\r\n"
                    "</head>\r\n"
                    "<body>\r\n')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('footer', '\r\n"
@@ -163,6 +185,13 @@ void rsi::loadSettings() {
         }
         query.exec("INSERT INTO `static` (`search`, `set`) VALUES('<p><big><b>', '<h1>')");
         query.exec("INSERT INTO `static` (`search`, `set`) VALUES('</b></big><br>', '</h1>')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ä', '&auml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ü', '&uuml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ö', '&ouml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ä', '&Auml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ü', '&Uuml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ö', '&Ouml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ß', '&szlig;')");
         if(!query.exec("CREATE TABLE `dynamic` ("
                    "    `search`   TEXT NOT NULL,"
                    "    `set` TEXT NOT NULL,"
@@ -197,7 +226,7 @@ void rsi::loadSettings() {
     table_static->setColumnWidth(1, 340);
     table_static->setColumnWidth(2, 0);
 
-    query.exec("SELECT `search`, `set`, `maxval` FROM `dynamic`");
+    query.exec("SELECT `search`, `set`, `maxval`, `rowid` FROM `dynamic`");
     dynrows = query.size() + 1;
     dynmodel = new QStandardItemModel(dynrows, 3, this);
     dynmodel->setHorizontalHeaderItem(0, new QStandardItem(tr("Suchen")));
@@ -208,6 +237,8 @@ void rsi::loadSettings() {
         dynmodel->setItem(row, 0, new QStandardItem(query.value(query.record().indexOf("search")).toString()));
         dynmodel->setItem(row, 1, new QStandardItem(query.value(query.record().indexOf("set")).toString()));
         dynmodel->setItem(row, 2, new QStandardItem(query.value(query.record().indexOf("maxval")).toString()));
+        dynmodel->setItem(row, 3, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
+        dynmodel->item(row, 3)->setEnabled(false);
         row ++;
     }
     dynmodel->setItem(row, 0, new QStandardItem("<neu>"));
@@ -294,10 +325,12 @@ void rsi::change_static(QStandardItem* item) {
             if(query.next()) {
                 write_log("Statische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
             }else{
-                query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')");
-                query.exec("SELECT `rowid` FROM `static` WHERE `rowid` = '"  +statmodel->item(item->row(), 2)->text() + "'");
+                if(!query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')")) {
+                    write_log(query.lastError().text());
+                }
+                query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  + statmodel->item(item->row(), 0)->text() + "'");
                 query.next();
-                statmodel->appendRow(new QStandardItem("<neu>"));
+                statmodel->setItem(item->row() + 1, 0, new QStandardItem("<neu>"));
                 statmodel->setItem(item->row() + 1, 1, new QStandardItem("<neu>"));
                 statmodel->setItem(item->row(), 2, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
                 statmodel->item(item->row(), 2)->setEnabled(false);
@@ -306,7 +339,7 @@ void rsi::change_static(QStandardItem* item) {
             // Zeile geändert
             if(statmodel->item(item->row(), 0)->text() == "!") {
                 query.exec("DELETE FROM `static` WHERE `rowid` = '"  + statmodel->item(item->row(), 2)->text() + "'");
-                // ACHTUNG: ZEILE WIRD WEITER ANGEZEIGT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                statmodel->removeRow(item->row());
             }else{
                 query.exec("UPDATE `static` SET "
                            "    `search` = '" + statmodel->item(item->row(), 0)->text() + "', "
@@ -318,35 +351,39 @@ void rsi::change_static(QStandardItem* item) {
 }
 void rsi::change_dynamic(QStandardItem* item) {
     // Item in Dynamisch-Tabellle geändert
-    if(item->row() == dynmodel->rowCount() - 1) {
-        // Neue Zeile
-        query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
-        if(query.next()) {
-            write_log("Dynamische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+    if(dynmodel->item(item->row(), 0)->text() != "<neu>") {
+        if(item->row() == dynmodel->rowCount() - 1) {
+            // Neue Zeile
+            query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
+            if(query.next()) {
+                write_log("Dynamische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+            }else{
+                if(!query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
+                           "    '" + dynmodel->item(item->row(), 0)->text() + "',"
+                           "    '" + dynmodel->item(item->row(), 1)->text() + "',"
+                           "    '" + dynmodel->item(item->row(), 2)->text() + "')")) {
+                    write_log(query.lastError().text());
+                }
+                query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
+                query.next();
+                dynmodel->setItem(item->row() + 1, 0, new QStandardItem("<neu>"));
+                dynmodel->setItem(item->row() + 1, 1, new QStandardItem("<neu>"));
+                dynmodel->setItem(item->row() + 1, 2, new QStandardItem("1"));
+                dynmodel->setItem(item->row(), 3, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
+                dynmodel->item(item->row(), 3)->setEnabled(false);
+            }
         }else{
-            query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
-                       "    '" + statmodel->item(item->row(), 0)->text() + "',"
-                       "    '" + statmodel->item(item->row(), 1)->text() + "',"
-                       "    '" + statmodel->item(item->row(), 2)->text() + "'");
-            query.exec("SELECT `rowid` FROM `dynamic` WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
-            query.next();
-            dynmodel->appendRow(new QStandardItem("<neu>"));
-            dynmodel->setItem(item->row() + 1, 1, new QStandardItem("<neu>"));
-            dynmodel->setItem(item->row() + 1, 2, new QStandardItem("1"));
-            dynmodel->setItem(item->row(), 3, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
-            dynmodel->item(item->row(), 3)->setEnabled(false);
-        }
-    }else{
-        // Zeile geändert
-        if(dynmodel->item(item->row(), 0)->text() == "!") {
-            query.exec("DELETE FROM `dynamic` WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
-            // ACHTUNG: ZEILE WIRD WEITER ANGEZEIGT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        }else{
-            query.exec("UPDATE `dynamic` SET "
-                       "    `search` = '" + dynmodel->item(item->row(), 0)->text() + "',"
-                       "    `set` = '"  + dynmodel->item(item->row(), 1)->text() + "',"
-                       "    `maxval` = '" + dynmodel->item(item->row(), 2)->text() + "'"
-                       "WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
+            // Zeile geändert
+            if(dynmodel->item(item->row(), 0)->text() == "!") {
+                query.exec("DELETE FROM `dynamic` WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
+                dynmodel->removeRow(item->row());
+            }else{
+                query.exec("UPDATE `dynamic` SET "
+                           "    `search` = '" + dynmodel->item(item->row(), 0)->text() + "',"
+                           "    `set` = '"  + dynmodel->item(item->row(), 1)->text() + "',"
+                           "    `maxval` = '" + dynmodel->item(item->row(), 2)->text() + "'"
+                           "WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
+            }
         }
     }
 }
@@ -515,7 +552,7 @@ void rsi::parser(QString filename) {
             output = query.value(query.record().indexOf("data")).toByteArray();
 
             pfile.setFileName(filename);
-            pfile.open(QIODevice::ReadOnly);
+            pfile.open(QIODevice::ReadOnly | QIODevice::Text);
             QTextStream in(&pfile);
             do {
                 line = in.readLine();
@@ -547,7 +584,7 @@ void rsi::parser(QString filename) {
                 pfile.remove(newfile);
             }
             pfile.setFileName(newfile);
-            pfile.open(QIODevice::WriteOnly);
+            pfile.open(QIODevice::WriteOnly | QIODevice::Text);
             if(pfile.write(output) == -1) {
                 write_log("Fehler beim Schreiben der Ausgabedatei: "+pfile.errorString());
             }
