@@ -564,10 +564,10 @@ void rsi::parser(QString filename) {
         }
         if(parse) {
             // Array fuer dynamischen Inhalt vorbereiten:
-            query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
+            query.exec("SELECT `rowid` FROM `dynamic`");
             int rows = 0;
             while(query.next()) {
-                rows ++;
+                rows = query.value(query.record().indexOf("rowid"));
             }
             unsigned int phase[rows];
             for(int i = 0; i < rows; i++) {
@@ -589,10 +589,6 @@ void rsi::parser(QString filename) {
             QTextStream in(&pfile);
             do {
                 line = in.readLine();
-                query.exec("SELECT `search`, `set` FROM `static`");
-                while(query.next()) {
-                    line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString());
-                }
                 query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
                 while(query.next()) {
                     if(line.contains(query.value(query.record().indexOf("search")).toString())) {
@@ -603,6 +599,10 @@ void rsi::parser(QString filename) {
                         }
                     }
                     line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString().arg(phase[query.value(query.record().indexOf("rowid")).toInt()]));
+                }
+                query.exec("SELECT `search`, `set` FROM `static`");
+                while(query.next()) {
+                    line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString());
                 }
                 output += line + tr("\r\n");
             } while (!line.isNull());
