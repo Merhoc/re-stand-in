@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
     QApplication::setQuitOnLastWindowClosed(false);
 
     rsi w;
+    QObject::connect(&app, SIGNAL(aboutToQuit()), &w, SLOT(quit()));
     
     return app.exec();
 }
