@@ -51,7 +51,9 @@ class rsi : public QMainWindow, Ui::rsi
 
     private slots:
         void choose_uw();
+        void change_uw();
         void choose_uw2();
+        void change_uw2();
         void change_dform();
         void change_int();
         void change_header();
@@ -99,7 +101,7 @@ class rsi : public QMainWindow, Ui::rsi
         void loadSettings();
         void parser(QString filename);
 
-        QString getFilename(QString raw);
+        QString getFilename(QString raw, int offset = 0);
 };
 
 #endif // RSI_H

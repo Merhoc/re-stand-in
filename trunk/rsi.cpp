@@ -73,7 +73,9 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     connect(button_quit, SIGNAL(clicked()), this, SLOT(quit()));
 
     connect(button_uw, SIGNAL(clicked()), this, SLOT(choose_uw()));
+    connect(input_uw, SIGNAL(textChanged(QString)), this, SLOT(change_uw()));
     connect(button_uw_2, SIGNAL(clicked()), this, SLOT(choose_uw2()));
+    connect(input_uw_2, SIGNAL(textChanged(QString)), this, SLOT(change_uw2()));
     connect(input_dform, SIGNAL(textChanged(QString)), this, SLOT(change_dform()));
     connect(input_int, SIGNAL(valueChanged(int)), this, SLOT(change_int()));
 
@@ -138,7 +140,7 @@ void rsi::loadSettings() {
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('uw2', '')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('active', '0')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('sh', '0')");
-        query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('dform', '')");
+        query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('dform', 'MM-dd-yyyy')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('int', '5')");
         query.exec("INSERT INTO `settings` (`setting`, `data`) VALUES('header', '"
                    "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\"\r\n"
@@ -279,11 +281,15 @@ void rsi::loadSettings() {
 // Aktionen im Einstellungsfenster
 void rsi::choose_uw() {
     input_uw->setText(QFileDialog::getOpenFileName(this, tr("Datei waehlen..."), "", tr("HTML Dateien (*.htm *.html)")));
+}
+void rsi::change_uw() {
     query.exec("UPDATE `settings` SET `data` = '" + input_uw->text() + "' WHERE `setting` = 'uw1'");
     query.exec("UPDATE `settings` SET `data` = '0' WHERE `setting` = 'proc_uw1'");
 }
 void rsi::choose_uw2() {
     input_uw_2->setText(QFileDialog::getOpenFileName(this, tr("Datei waehlen..."), "", tr("HTML Dateien (*.htm *.html)")));
+}
+void rsi::change_uw2() {
     query.exec("UPDATE `settings` SET `data` = '" + input_uw_2->text() + "' WHERE `setting` = 'uw2'");
     query.exec("UPDATE `settings` SET `data` = '0' WHERE `setting` = 'proc_uw2'");
 }
@@ -466,18 +472,18 @@ void rsi::startstop(bool writeSettings) {
                 uwtimer1->start(input_int->value() * 1000);
                 parser1();
             }else{
-                write_log("Fehler: Zu überwachende Datei 1 existiert nicht!");
+                write_log("Fehler: Zu überwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
             }
         }else{
             write_log("Überwachung 1 nicht aktiv (keine Datei angegeben).");
         }
         if(input_uw_2->text() != "") {
-            uwinfo2.setFile(getFilename(input_uw_2->text()));
+            uwinfo2.setFile(getFilename(input_uw_2->text(), 1));
             if(uwinfo2.exists()) {
                 uwtimer2->start(input_int->value() * 1000);
                 parser2();
             }else{
-                write_log("Fehler: Zu überwachende Datei 2 existiert nicht!");
+                write_log("Fehler: Zu überwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
             }
         }else{
             write_log("Überwachung 2 nicht aktiv (keine Datei angegeben).");
@@ -523,9 +529,9 @@ void rsi::write_log(QString message, bool tray) {
     if(tray)
         trayIcon->showMessage(tr("re-stand-in"), message, QSystemTrayIcon::Information, 5000);
 }
-QString rsi::getFilename(QString raw) {
+QString rsi::getFilename(QString raw, int offset) {
     if(raw.contains("%1"))
-        return raw.arg(QDateTime::currentDateTime().toString(input_dform->text()));
+        return raw.arg(QDateTime::currentDateTime().addDays(offset).toString(input_dform->text()));
     else
         return raw;
 }
@@ -535,7 +541,7 @@ void rsi::parser1() {
     parser(getFilename(input_uw->text()));
 }
 void rsi::parser2() {
-    parser(getFilename(input_uw_2->text()));
+    parser(getFilename(input_uw_2->text(), 1));
 }
 
 void rsi::parser(QString filename) {
