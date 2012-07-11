@@ -546,10 +546,8 @@ void rsi::parser2() {
 
 void rsi::parser(QString filename) {
     QFileInfo fileinfo;
-    QString line, newfile;
+    QString line;
     QByteArray output;
-    newfile = filename;
-    newfile.replace(".", "_rsi.");
     bool parse = false;
     fileinfo.setFile(filename);
     //Überprüfung auf aktualität, evtl. Aktualisierung
@@ -618,18 +616,14 @@ void rsi::parser(QString filename) {
             query.next();
             output += query.value(query.record().indexOf("data")).toByteArray();
             pfile.close();
-            fileinfo.setFile(newfile);
-            if(fileinfo.exists()) {
-                pfile.remove(newfile);
-            }
-            pfile.setFileName(newfile);
+            pfile.remove(filename);
+            pfile.setFileName(filename);
             pfile.open(QIODevice::WriteOnly | QIODevice::Text);
             if(pfile.write(output) == -1) {
                 write_log("Fehler beim Schreiben der Ausgabedatei: "+pfile.errorString());
             }
             pfile.close();
             write_log(filename + " verarbeitet.");
-            write_log("Ziel: " + newfile);
         }
     }
 }
