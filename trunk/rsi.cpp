@@ -619,6 +619,7 @@ void rsi::parser(QString filename) {
                 write_log("Fehler beim Schreiben der Ausgabedatei: "+pfile.errorString());
             }
             pfile.close();
+            fileinfo.refresh();
             if(!query.exec("UPDATE `files` SET `lastchange` = '"+fileinfo.lastModified().toString()+"' WHERE `filename` = '"+filename+"'")) {
                 write_log(query.lastError().text());
             }
