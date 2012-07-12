@@ -23,6 +23,8 @@
  * rsi.cpp
  */
 
+#define _RSI_DELETE_OLD_FILE 1
+
 #include "rsi.h"
 
 rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
@@ -546,8 +548,10 @@ void rsi::parser2() {
 
 void rsi::parser(QString filename) {
     QFileInfo fileinfo;
-    QString line;
+    QString line, newfile;
     QByteArray output;
+    newfile = filename;
+    newfile.replace(".", "_rsi.");
     bool parse = false;
     fileinfo.setFile(filename);
     //Überprüfung auf aktualität, evtl. Aktualisierung
@@ -616,14 +620,21 @@ void rsi::parser(QString filename) {
             query.next();
             output += query.value(query.record().indexOf("data")).toByteArray();
             pfile.close();
-            pfile.remove(filename);
-            pfile.setFileName(filename);
+            fileinfo.setFile(newfile);
+            if(fileinfo.exists()) {
+                pfile.remove(newfile);
+            }
+            pfile.setFileName(newfile);
             pfile.open(QIODevice::WriteOnly | QIODevice::Text);
             if(pfile.write(output) == -1) {
                 write_log("Fehler beim Schreiben der Ausgabedatei: "+pfile.errorString());
             }
             pfile.close();
+#ifdef _RSI_DELETE_OLD_FILE
+            pfile.remove(filename);
+#endif  // _RSI_DELETE_OLD_FILE
             write_log(filename + " verarbeitet.");
+            write_log("Ziel: " + newfile);
         }
     }
 }
