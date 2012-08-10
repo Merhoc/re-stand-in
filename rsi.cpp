@@ -468,23 +468,19 @@ void rsi::startstop(bool writeSettings) {
         table_dynamic->setEnabled(false);
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
-            if(uwinfo1.exists()) {
-                uwtimer1->start(input_int->value() * 1000);
-                parser1();
-            }else{
-                write_log("Fehler: Zu überwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
-            }
+            if(!uwinfo1.exists())
+                write_log("Achtung: Zu überwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
+            uwtimer1->start(input_int->value() * 1000);
+            parser1();
         }else{
             write_log("Überwachung 1 nicht aktiv (keine Datei angegeben).");
         }
         if(input_uw_2->text() != "") {
             uwinfo2.setFile(getFilename(input_uw_2->text(), 1));
-            if(uwinfo2.exists()) {
-                uwtimer2->start(input_int->value() * 1000);
-                parser2();
-            }else{
-                write_log("Fehler: Zu überwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
-            }
+            if(uwinfo2.exists())
+                write_log("Achtung: Zu überwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
+            uwtimer2->start(input_int->value() * 1000);
+            parser2();
         }else{
             write_log("Überwachung 2 nicht aktiv (keine Datei angegeben).");
         }
