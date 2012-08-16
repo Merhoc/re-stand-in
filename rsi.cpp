@@ -61,7 +61,7 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     uwtimer1 = new QTimer(this);
     uwtimer2 = new QTimer(this);
     crontimer = new QTimer(this);
-    crontimer->start(24 * 60 * 60 * 1000);                       // Alle 24h Reinigungsarbeiten ausführen
+    crontimer->start(24 * 60 * 60 * 1000);                       // Alle 24h Reinigungsarbeiten ausfuehren
 
     connect(trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(tray_clicked(QSystemTrayIcon::ActivationReason)));
     connect(visibleAction, SIGNAL(triggered()), this, SLOT(visible()));
@@ -209,13 +209,13 @@ void rsi::loadSettings() {
         }
         query.exec("INSERT INTO `static` (`search`, `set`) VALUES('<p><big><b>', '<h1>')");
         query.exec("INSERT INTO `static` (`search`, `set`) VALUES('</b></big><br>', '</h1>')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ä', '&auml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ü', '&uuml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ö', '&ouml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ä', '&Auml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ü', '&Uuml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ö', '&Ouml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ß', '&szlig;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ã¤', '&auml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ã¼', '&uuml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ã¶', '&ouml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ã„', '&Auml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ãœ', '&Uuml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ã–', '&Ouml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ÃŸ', '&szlig;')");
         if(!query.exec("CREATE TABLE `dynamic` ("
                    "    `search`   TEXT NOT NULL,"
                    "    `set` TEXT NOT NULL,"
@@ -256,7 +256,7 @@ void rsi::loadSettings() {
     dynmodel = new QStandardItemModel(dynrows, 3, this);
     dynmodel->setHorizontalHeaderItem(0, new QStandardItem(tr("Suchen")));
     dynmodel->setHorizontalHeaderItem(1, new QStandardItem(tr("Ersetzen")));
-    dynmodel->setHorizontalHeaderItem(2, new QStandardItem(tr("Zählen bis")));
+    dynmodel->setHorizontalHeaderItem(2, new QStandardItem(tr("ZÃ¤hlen bis")));
     row = 0;
     while(query.next()) {
         dynmodel->setItem(row, 0, new QStandardItem(query.value(query.record().indexOf("search")).toString()));
@@ -346,13 +346,13 @@ void rsi::reset_footer() {
     footReset->setEnabled(false);
 }
 void rsi::change_static(QStandardItem* item) {
-    // Item in Statisch-Tabelle geändert
+    // Item in Statisch-Tabelle geÃ¤ndert
     if(item->text() != "<neu>") {
         if(item->row() == statmodel->rowCount() - 1) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  +statmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Statische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+                write_log("Statische Ã„nderung nicht gespeichert: Suchwort existiert bereits!", true);
             }else{
                 if(!query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')")) {
                     write_log(query.lastError().text());
@@ -365,7 +365,7 @@ void rsi::change_static(QStandardItem* item) {
                 statmodel->item(item->row(), 2)->setEnabled(false);
             }
         }else{
-            // Zeile geändert
+            // Zeile geÃ¤ndert
             if(statmodel->item(item->row(), 0)->text() == "!") {
                 query.exec("DELETE FROM `static` WHERE `rowid` = '"  + statmodel->item(item->row(), 2)->text() + "'");
                 statmodel->removeRow(item->row());
@@ -379,13 +379,13 @@ void rsi::change_static(QStandardItem* item) {
     }
 }
 void rsi::change_dynamic(QStandardItem* item) {
-    // Item in Dynamisch-Tabellle geändert
+    // Item in Dynamisch-Tabellle geÃ¤ndert
     if(dynmodel->item(item->row(), 0)->text() != "<neu>") {
         if(item->row() == dynmodel->rowCount() - 1) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Dynamische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+                write_log("Dynamische Ã„nderung nicht gespeichert: Suchwort existiert bereits!", true);
             }else{
                 if(!query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
                            "    '" + dynmodel->item(item->row(), 0)->text() + "',"
@@ -402,7 +402,7 @@ void rsi::change_dynamic(QStandardItem* item) {
                 dynmodel->item(item->row(), 3)->setEnabled(false);
             }
         }else{
-            // Zeile geändert
+            // Zeile geÃ¤ndert
             if(dynmodel->item(item->row(), 0)->text() == "!") {
                 query.exec("DELETE FROM `dynamic` WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
                 dynmodel->removeRow(item->row());
@@ -469,20 +469,20 @@ void rsi::startstop(bool writeSettings) {
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
             if(!uwinfo1.exists())
-                write_log("Achtung: Zu überwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
+                write_log("Achtung: Zu Ã¼berwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
             uwtimer1->start(input_int->value() * 1000);
             parser1();
         }else{
-            write_log("Überwachung 1 nicht aktiv (keine Datei angegeben).");
+            write_log("Ãœberwachung 1 nicht aktiv (keine Datei angegeben).");
         }
         if(input_uw_2->text() != "") {
             uwinfo2.setFile(getFilename(input_uw_2->text(), 1));
-            if(uwinfo2.exists())
-                write_log("Achtung: Zu überwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
+            if(!uwinfo2.exists())
+                write_log("Achtung: Zu Ã¼berwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
             uwtimer2->start(input_int->value() * 1000);
             parser2();
         }else{
-            write_log("Überwachung 2 nicht aktiv (keine Datei angegeben).");
+            write_log("Ãœberwachung 2 nicht aktiv (keine Datei angegeben).");
         }
         write_log("Dienst gestartet.", true);
     }else{
@@ -546,7 +546,7 @@ void rsi::parser(QString filename) {
     QByteArray output;
     bool parse = false;
     fileinfo.setFile(filename);
-    //Überprüfung auf aktualität, evtl. Aktualisierung
+    //ÃœberprÃ¼fung auf aktualitÃ¤t, evtl. Aktualisierung
     if(fileinfo.isReadable()) {
         if(!query.exec("SELECT `lastchange` FROM `files` WHERE `filename` = '"+ filename +"'")) {
             write_log(query.lastError().text());
