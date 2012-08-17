@@ -161,7 +161,7 @@ void rsi::loadSettings() {
                    "        empty-cells: show;\r\n"
                    "    }\r\n"
                    "    .row0 {\r\n"
-                   "        background-color: #BBBBBB;\r\n"
+                   "        background-color: #AAAAAA;\r\n"
                    "    }\r\n"
                    "    .row1 {\r\n"
                    "        background-color: #FFFFFF;\r\n"
@@ -209,13 +209,13 @@ void rsi::loadSettings() {
         }
         query.exec("INSERT INTO `static` (`search`, `set`) VALUES('<p><big><b>', '<h1>')");
         query.exec("INSERT INTO `static` (`search`, `set`) VALUES('</b></big><br>', '</h1>')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ä', '&auml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ü', '&uuml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ö', '&ouml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ä', '&Auml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ü', '&Uuml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('Ö', '&Ouml;')");
-        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('ß', '&szlig;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('�', '&auml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('�', '&uuml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('�', '&ouml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('�', '&Auml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('�', '&Uuml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('�', '&Ouml;')");
+        query.exec("INSERT INTO `static` (`search`, `set`) VALUES('�', '&szlig;')");
         if(!query.exec("CREATE TABLE `dynamic` ("
                    "    `search`   TEXT NOT NULL,"
                    "    `set` TEXT NOT NULL,"
@@ -256,7 +256,7 @@ void rsi::loadSettings() {
     dynmodel = new QStandardItemModel(dynrows, 3, this);
     dynmodel->setHorizontalHeaderItem(0, new QStandardItem(tr("Suchen")));
     dynmodel->setHorizontalHeaderItem(1, new QStandardItem(tr("Ersetzen")));
-    dynmodel->setHorizontalHeaderItem(2, new QStandardItem(tr("Zählen bis")));
+    dynmodel->setHorizontalHeaderItem(2, new QStandardItem(tr("Zaehlen bis")));
     row = 0;
     while(query.next()) {
         dynmodel->setItem(row, 0, new QStandardItem(query.value(query.record().indexOf("search")).toString()));
@@ -379,13 +379,13 @@ void rsi::change_static(QStandardItem* item) {
     }
 }
 void rsi::change_dynamic(QStandardItem* item) {
-    // Item in Dynamisch-Tabellle geändert
+    // Item in Dynamisch-Tabellle geaendert
     if(dynmodel->item(item->row(), 0)->text() != "<neu>") {
         if(item->row() == dynmodel->rowCount() - 1) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Dynamische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+                write_log("Dynamische Aenderung nicht gespeichert: Suchwort existiert bereits!", true);
             }else{
                 if(!query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
                            "    '" + dynmodel->item(item->row(), 0)->text() + "',"
@@ -434,18 +434,11 @@ void rsi::quit() {
 
 void rsi::cron() {
     // Datenbankbereinigung:
-    if(running) {
-        // Derzeit verarbeitete Dateien unangetastet lassen:
-        QString sql = "DELETE FROM `files` WHERE"
-                "   `filename` != '" + input_uw->text() + "' AND"
-                "   `filename` != '" + input_uw_2->text() + "'";
-        if(!query.exec(sql)) {
-            write_log(query.lastError().text());
-        }
-    }else{
-        if(!query.exec("DELETE FROM `files` WHERE 1")) {
-            write_log(query.lastError().text());
-        }
+    QString sql = "DELETE FROM `files` WHERE"
+            "   `filename` != '" + input_uw->text() + "' AND"
+            "   `filename` != '" + input_uw_2->text() + "'";
+    if(!query.exec(sql)) {
+        write_log(query.lastError().text());
     }
 }
 
@@ -469,20 +462,20 @@ void rsi::startstop(bool writeSettings) {
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
             if(!uwinfo1.exists())
-                write_log("Achtung: Zu überwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
+                write_log("Achtung: Zu Ueberwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
             uwtimer1->start(input_int->value() * 1000);
             parser1();
         }else{
-            write_log("Überwachung 1 nicht aktiv (keine Datei angegeben).");
+            write_log("Ueberwachung 1 nicht aktiv (keine Datei angegeben).");
         }
         if(input_uw_2->text() != "") {
             uwinfo2.setFile(getFilename(input_uw_2->text(), 1));
             if(!uwinfo2.exists())
-                write_log("Achtung: Zu überwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
+                write_log("Achtung: Zu Ueberwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
             uwtimer2->start(input_int->value() * 1000);
             parser2();
         }else{
-            write_log("Überwachung 2 nicht aktiv (keine Datei angegeben).");
+            write_log("Ueberwachung 2 nicht aktiv (keine Datei angegeben).");
         }
         write_log("Dienst gestartet.", true);
     }else{
@@ -546,22 +539,23 @@ void rsi::parser(QString filename) {
     QByteArray output;
     bool parse = false;
     fileinfo.setFile(filename);
-    //Überprüfung auf aktualität, evtl. Aktualisierung
+    fileinfo.refresh();
+    //Ueberpruefung auf aktualitaet, evtl. Aktualisierung
     if(fileinfo.isReadable()) {
-        if(!query.exec("SELECT `lastchange` FROM `files` WHERE `filename` = '"+ filename +"'")) {
+        if(!query.exec("SELECT `lastchange` FROM `files` WHERE `filename` = '"+ filename +"'"))
             write_log(query.lastError().text());
-        }
         if(!query.next()) {
             // Noch nie verarbeitet.
-            if(!query.exec("INSERT INTO `files` (`filename`, `lastchange`) VALUES ('"+filename+"', '"+fileinfo.lastModified().toString()+"')")) {
+            if(!query.exec("INSERT INTO `files` (`filename`, `lastchange`) VALUES ('"+filename+"', '"+fileinfo.lastModified().toString()+"')"))
                 write_log(query.lastError().text());
-            }
             parse = true;
         }else{
-            if(query.value(query.record().indexOf("lastchange")) != fileinfo.lastModified().toString()) {
+            // Aenderung seit letzter Verarbeitung?
+            if(query.value(query.record().indexOf("lastchange")) != fileinfo.lastModified().toString())
                 parse = true;
-            }
         }
+
+        // Wenn erforderlich, verarbeiten:
         if(parse) {
             // Array fuer dynamischen Inhalt vorbereiten:
             query.exec("SELECT `rowid` FROM `dynamic`");
@@ -580,9 +574,11 @@ void rsi::parser(QString filename) {
             query.next();
             output = query.value(query.record().indexOf("data")).toByteArray();
 
+            // Datei oeffnen:
             pfile.setFileName(filename);
             pfile.open(QIODevice::ReadOnly | QIODevice::Text);
             QTextStream in(&pfile);
+            // Zeile fuer Zeile lesen und verarbeiten
             do {
                 line = in.readLine();
                 query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
@@ -600,7 +596,9 @@ void rsi::parser(QString filename) {
                 while(query.next()) {
                     line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString());
                 }
-                output += line + tr("\r\n");
+                //line.append("\r\n");
+                output.append(line);
+                output.append(tr("\r\n"));
             } while (!line.isNull());
             if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
                 write_log(query.lastError().text());
