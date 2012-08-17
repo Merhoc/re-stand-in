@@ -92,6 +92,7 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     connect(crontimer, SIGNAL(timeout()), this, SLOT(cron()));
 
     loadSettings();                                                         // Load Settings from Database
+    cron();
 
     query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'sh'");
     query.next();
@@ -346,13 +347,13 @@ void rsi::reset_footer() {
     footReset->setEnabled(false);
 }
 void rsi::change_static(QStandardItem* item) {
-    // Item in Statisch-Tabelle geändert
+    // Item in Statisch-Tabelle geaendert
     if(item->text() != "<neu>") {
         if(item->row() == statmodel->rowCount() - 1) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  +statmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Statische Änderung nicht gespeichert: Suchwort existiert bereits!", true);
+                write_log("Statische Aenderung nicht gespeichert: Suchwort existiert bereits!", true);
             }else{
                 if(!query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')")) {
                     write_log(query.lastError().text());
@@ -365,7 +366,7 @@ void rsi::change_static(QStandardItem* item) {
                 statmodel->item(item->row(), 2)->setEnabled(false);
             }
         }else{
-            // Zeile geändert
+            // Zeile geaendert
             if(statmodel->item(item->row(), 0)->text() == "!") {
                 query.exec("DELETE FROM `static` WHERE `rowid` = '"  + statmodel->item(item->row(), 2)->text() + "'");
                 statmodel->removeRow(item->row());
@@ -402,7 +403,7 @@ void rsi::change_dynamic(QStandardItem* item) {
                 dynmodel->item(item->row(), 3)->setEnabled(false);
             }
         }else{
-            // Zeile geändert
+            // Zeile geaendert
             if(dynmodel->item(item->row(), 0)->text() == "!") {
                 query.exec("DELETE FROM `dynamic` WHERE `rowid` = '"  + dynmodel->item(item->row(), 3)->text() + "'");
                 dynmodel->removeRow(item->row());
@@ -557,7 +558,7 @@ void rsi::parser(QString filename) {
 
         // Wenn erforderlich, verarbeiten:
         if(parse) {
-            // Array fuer dynamischen Inhalt vorbereiten:
+            // Array fuer dynamische Aenderungen vorbereiten:
             query.exec("SELECT `rowid` FROM `dynamic`");
             int rows = 0;
             while(query.next()) {
@@ -572,7 +573,7 @@ void rsi::parser(QString filename) {
                 write_log(query.lastError().text());
             }
             query.next();
-            output = query.value(query.record().indexOf("data")).toByteArray();
+            QByteArray output = query.value(query.record().indexOf("data")).toByteArray();
 
             // Datei oeffnen:
             pfile.setFileName(filename);
@@ -580,7 +581,9 @@ void rsi::parser(QString filename) {
             QTextStream in(&pfile);
             // Zeile fuer Zeile lesen und verarbeiten
             do {
+                // Zeile lesen
                 line = in.readLine();
+                // Dynamische Aenderungen:
                 query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
                 while(query.next()) {
                     if(line.contains(query.value(query.record().indexOf("search")).toString())) {
@@ -592,11 +595,14 @@ void rsi::parser(QString filename) {
                     }
                     line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString().arg(phase[query.value(query.record().indexOf("rowid")).toInt()]));
                 }
+
+                // Statische Aenderungen
                 query.exec("SELECT `search`, `set` FROM `static`");
                 while(query.next()) {
                     line.replace(query.value(query.record().indexOf("search")).toString(), query.value(query.record().indexOf("set")).toString());
                 }
-                //line.append("\r\n");
+
+                // Fertige Zeile zwischenspeichern:
                 output.append(line);
                 output.append(tr("\r\n"));
             } while (!line.isNull());
