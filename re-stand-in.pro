@@ -11,9 +11,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        rsi.cpp
+        rsi.cpp \
+    settings.cpp \
+    parser.cpp
 
-HEADERS  += rsi.h
+HEADERS  += rsi.h \
+    standard_settings.hpp
 
 FORMS    += rsi.ui
 
