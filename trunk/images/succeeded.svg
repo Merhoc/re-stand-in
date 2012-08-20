@@ -16,9 +16,9 @@
    id="svg2997"
    version="1.1"
    inkscape:version="0.48.2 r9819"
-   sodipodi:docname="Neues Dokument 2">
+   sodipodi:docname="stopped.svg">
   <title
-     id="title5425">re-stand-in Icon</title>
+     id="title5459">re-stand-in verarbeitet</title>
   <defs
      id="defs2999">
     <linearGradient
@@ -203,7 +203,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6568543"
-     inkscape:cx="10.266721"
+     inkscape:cx="-23.586016"
      inkscape:cy="38.34834"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -222,7 +222,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title>re-stand-in Icon</dc:title>
+        <dc:title>re-stand-in verarbeitet</dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -272,5 +272,28 @@
        width="30"
        id="rect5393"
        style="fill:url(#pattern5395);fill-opacity:1;fill-rule:nonzero;stroke:url(#pattern5397);stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter5373)" />
+    <path
+       sodipodi:type="star"
+       style="opacity:0.9;fill:#008000;fill-opacity:0.94230772;fill-rule:nonzero;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none"
+       id="path5431"
+       sodipodi:sides="3"
+       sodipodi:cx="5.6568542"
+       sodipodi:cy="27.407225"
+       sodipodi:r1="15.219231"
+       sodipodi:r2="7.6096158"
+       sodipodi:arg1="0"
+       sodipodi:arg2="1.0471976"
+       inkscape:flatsided="true"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 20.876085,27.407225 -22.8288462,13.18024 0,-26.360481 z"
+       inkscape:transform-center-x="-5.0000005"
+       transform="matrix(1.3141269,0,0,1.3277451,3.566176,9.1101922)" />
+    <path
+       style="fill:#00ff00;fill-opacity:0.94230772;stroke:#000000;stroke-width:1.05916929px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.94117647"
+       d="M 1,36 25,63 63,6 58,1 25,49 5,33 z"
+       id="path5457"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccc" />
   </g>
 </svg>

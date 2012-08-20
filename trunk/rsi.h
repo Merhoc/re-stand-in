@@ -72,6 +72,7 @@ class rsi : public QMainWindow, Ui::rsi
         void parser1();
         void parser2();
 
+        void do_reseticon();
         void cron();
 
         void quit();
@@ -95,6 +96,8 @@ class rsi : public QMainWindow, Ui::rsi
         QFile pfile;
 
         QTimer * crontimer;
+
+        QTimer * reseticon;
 
         bool running;
 
