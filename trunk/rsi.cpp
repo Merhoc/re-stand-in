@@ -23,7 +23,7 @@
  * rsi.cpp
  */
 
-#define RSI_REV "Revision 34"
+#define RSI_REV "Revision 35"
 
 #include "rsi.h"
 
@@ -142,6 +142,7 @@ void rsi::cron() {
 // Aktionen im TrayIconMenu
 void rsi::startstop(bool writeSettings) {
     cron();
+
     running = !running;
 
     if(running) {

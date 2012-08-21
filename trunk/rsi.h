@@ -48,6 +48,7 @@ class rsi : public QMainWindow, Ui::rsi
         rsi(QMainWindow *parent = 0);
         ~rsi();
         void write_log(QString message, bool tray = false);
+        unsigned int phase [];
 
     private slots:
         void choose_uw();
@@ -103,6 +104,7 @@ class rsi : public QMainWindow, Ui::rsi
 
         void loadSettings();
         void parser(QString filename);
+        void prepare_dyn_array();
 
         QString getFilename(QString raw, int offset = 0);
 };
