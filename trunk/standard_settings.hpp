@@ -19,8 +19,8 @@
  * re-stand-in
  *
  * Heiko Metzger
- * 07.05.2012
- * rsi.cpp
+ * 20.08.2012
+ * standard_settings.hpp
  */
 
 #ifndef STANDARD_SETTINGS_HPP
