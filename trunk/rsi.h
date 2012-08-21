@@ -47,7 +47,7 @@ class rsi : public QMainWindow, Ui::rsi
     public:
         rsi(QMainWindow *parent = 0);
         ~rsi();
-        void write_log(QString message, bool tray = false);
+        void write_log(QString message);
         unsigned int phase [];
 
     private slots:
