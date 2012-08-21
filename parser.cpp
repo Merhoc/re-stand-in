@@ -34,11 +34,19 @@ void rsi::parser1() {
 void rsi::parser2() {
     parser(getFilename(input_uw_2->text(), 1));
 }
+void rsi::prepare_dyn_array() {
+    // Array fuer dynamische Aenderungen vorbereiten:
+    query.exec("SELECT `rowid` FROM `dynamic` ORDER BY `rowid` DESC LIMIT 0, 1;");
+    query.next();
+    int rows = query.value(query.record().indexOf("rowid")).toInt();
+    for(int i = 0; i <= rows; i++) {
+        phase[i] = INT_MAX;
+    }
+}
 
 void rsi::parser(QString filename) {
     QFileInfo fileinfo;
     QString line;
-    QByteArray output;
     bool parse = false;
     fileinfo.setFile(filename);
     fileinfo.refresh();
@@ -59,16 +67,7 @@ void rsi::parser(QString filename) {
 
         // Wenn erforderlich, verarbeiten:
         if(parse) {
-            // Array fuer dynamische Aenderungen vorbereiten:
-            query.exec("SELECT `rowid` FROM `dynamic`");
-            int rows = 0;
-            while(query.next()) {
-                rows = query.value(query.record().indexOf("rowid")).toInt();
-            }
-            unsigned int phase[rows];
-            for(int i = 0; i < rows; i++) {
-                phase[i] = 0;
-            }
+            rsi::prepare_dyn_array();
             // Verarbeiten:
             if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
                 write_log(query.lastError().text());
@@ -88,7 +87,7 @@ void rsi::parser(QString filename) {
                 query.exec("SELECT `rowid`, `search`, `set`, `maxval` FROM `dynamic`");
                 while(query.next()) {
                     if(line.contains(query.value(query.record().indexOf("search")).toString())) {
-                        if(phase[query.value(query.record().indexOf("rowid")).toInt()] == query.value(query.record().indexOf("maxval"))) {
+                        if(phase[query.value(query.record().indexOf("rowid")).toInt()] >= query.value(query.record().indexOf("maxval")).toUInt()) {
                             phase[query.value(query.record().indexOf("rowid")).toInt()] = 0;
                         }else{
                             phase[query.value(query.record().indexOf("rowid")).toInt()]++;
