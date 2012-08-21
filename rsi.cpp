@@ -23,7 +23,7 @@
  * rsi.cpp
  */
 
-#define RSI_REV "Revision 35"
+#define RSI_REV "Revision 36"
 
 #include "rsi.h"
 
@@ -175,7 +175,7 @@ void rsi::startstop(bool writeSettings) {
         }else{
             write_log("Ueberwachung 2 nicht aktiv (keine Datei angegeben).");
         }
-        write_log("Dienst gestartet.", true);
+        write_log("Dienst gestartet.");
     }else{
         // Ueberwachung stoppen:
         uwtimer1->stop();
@@ -190,7 +190,7 @@ void rsi::startstop(bool writeSettings) {
         footText->setEnabled(true);
         table_static->setEnabled(true);
         table_dynamic->setEnabled(true);
-        write_log("Dienst gestoppt.", true);
+        write_log("Dienst gestoppt.");
     }
     if(writeSettings) {
         QString sql = "UPDATE `settings` SET `data` = '";
@@ -216,10 +216,8 @@ void rsi::do_reseticon() {
 }
 
 // Private Funktionen:
-void rsi::write_log(QString message, bool tray) {
+void rsi::write_log(QString message) {
     log->appendPlainText(QDateTime::currentDateTime().toString() + ": " + message);
-    if(tray)
-        trayIcon->showMessage(tr("re-stand-in"), message, QSystemTrayIcon::Information, 5000);
 }
 QString rsi::getFilename(QString raw, int offset) {
     if(raw.contains("%1"))

@@ -110,7 +110,7 @@ void rsi::change_static(QStandardItem* item) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  +statmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Statische Aenderung nicht gespeichert: Suchwort existiert bereits!", true);
+                write_log("Statische Aenderung nicht gespeichert: Suchwort existiert bereits!");
             }else{
                 if(!query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')")) {
                     write_log(query.lastError().text());
@@ -144,7 +144,7 @@ void rsi::change_dynamic(QStandardItem* item) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Dynamische Aenderung nicht gespeichert: Suchwort existiert bereits!", true);
+                write_log("Dynamische Aenderung nicht gespeichert: Suchwort existiert bereits!");
             }else{
                 if(!query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
                            "    '" + dynmodel->item(item->row(), 0)->text() + "',"
