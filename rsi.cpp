@@ -23,7 +23,7 @@
  * rsi.cpp
  */
 
-#define RSI_REV "Revision 38"
+#define RSI_REV "Revision 39"
 
 #include "rsi.h"
 
@@ -34,8 +34,6 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     logsym[1] = tr("WW");
     logsym[2] = tr("DB");
     logsym[3] = tr("EE");
-
-    qDebug() << "a";
 
     write_log("re-stand-in startet.", LOG_INFO);
     write_log(RSI_REV, LOG_INFO);
@@ -99,18 +97,17 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     connect(headReset, SIGNAL(clicked()), this, SLOT(reset_header()));
     connect(footReset, SIGNAL(clicked()), this, SLOT(reset_footer()));
 
+    connect(reportComment, SIGNAL(cursorPositionChanged()), this, SLOT(create_report()));
+    connect(sendReport, SIGNAL(clicked()), this, SLOT(send_report()));
+
     connect(uwtimer1, SIGNAL(timeout()), this, SLOT(parser1()));
     connect(uwtimer2, SIGNAL(timeout()), this, SLOT(parser2()));
 
     connect(reseticon, SIGNAL(timeout()), this, SLOT(do_reseticon()));
     connect(crontimer, SIGNAL(timeout()), this, SLOT(cron()));
 
-    qDebug() << "b";
-
     loadSettings();                                                         // Load Settings from Database
     cron();
-
-    qDebug() << "c";
 
     query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'sh'");
     query.next();
@@ -227,9 +224,6 @@ void rsi::do_reseticon() {
 }
 
 // Private Funktionen:
-void rsi::write_log(QString message, unsigned short level) {
-    log->appendPlainText(QDateTime::currentDateTime().toString() + ": [" + logsym[level] + "] " + message);
-}
 QString rsi::getFilename(QString raw, int offset) {
     if(raw.contains("%1"))
         return raw.arg(QDateTime::currentDateTime().addDays(offset).toString(input_dform->text()));
