@@ -34,6 +34,7 @@
 #include <QStandardItemModel>
 #include <QtSql>
 #include <QFile>
+#include <QtNetwork>
 #include "ui_rsi.h"
 
 #define LOG_INFO 0
@@ -72,6 +73,9 @@ class rsi : public QMainWindow, Ui::rsi
         void change_static(QStandardItem* item);
         void change_dynamic(QStandardItem* item);
 
+        void create_report();
+        void send_report();
+
         void tray_clicked(QSystemTrayIcon::ActivationReason reason);
         void visible();
 
@@ -106,13 +110,13 @@ class rsi : public QMainWindow, Ui::rsi
 
         QTimer * reseticon;
 
-        bool running;
-
         void loadSettings();
         void parser(QString filename);
         void prepare_dyn_array();
 
         QString getFilename(QString raw, int offset = 0);
+        bool running;
+        QNetworkAccessManager netman;
 };
 
 #endif // RSI_H

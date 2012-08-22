@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql
+QT       += core gui sql network
 
 TARGET = re-stand-in
 TEMPLATE = app
@@ -13,7 +13,8 @@ TEMPLATE = app
 SOURCES += main.cpp\
         rsi.cpp \
     settings.cpp \
-    parser.cpp
+    parser.cpp \
+    log.cpp
 
 HEADERS  += rsi.h \
     standard_settings.hpp
