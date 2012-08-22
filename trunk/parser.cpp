@@ -53,11 +53,11 @@ void rsi::parser(QString filename) {
     //Ueberpruefung auf aktualitaet, evtl. Aktualisierung
     if(fileinfo.isReadable()) {
         if(!query.exec("SELECT `lastchange` FROM `files` WHERE `filename` = '"+ filename +"'"))
-            write_log(query.lastError().text());
+            write_log(query.lastError().text(), LOG_DB);
         if(!query.next()) {
             // Noch nie verarbeitet.
             if(!query.exec("INSERT INTO `files` (`filename`, `lastchange`) VALUES ('"+filename+"', '"+fileinfo.lastModified().toString()+"')"))
-                write_log(query.lastError().text());
+                write_log(query.lastError().text(), LOG_DB);
             parse = true;
         }else{
             // Aenderung seit letzter Verarbeitung?
@@ -70,7 +70,7 @@ void rsi::parser(QString filename) {
             rsi::prepare_dyn_array();
             // Verarbeiten:
             if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
-                write_log(query.lastError().text());
+                write_log(query.lastError().text(), LOG_DB);
             }
             query.next();
             QByteArray output = query.value(query.record().indexOf("data")).toByteArray();
@@ -107,25 +107,28 @@ void rsi::parser(QString filename) {
                 output.append(tr("\r\n"));
             } while (!line.isNull());
             if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
-                write_log(query.lastError().text());
+                write_log(query.lastError().text(), LOG_DB);
             }
             query.next();
             output += query.value(query.record().indexOf("data")).toByteArray();
             pfile.close();
-            pfile.remove(filename);
-            pfile.setFileName(filename);
-            pfile.open(QIODevice::WriteOnly | QIODevice::Text);
-            if(pfile.write(output) == -1) {
-                write_log("Fehler beim Schreiben der Ausgabedatei: "+pfile.errorString());
+            if(pfile.remove(filename)) {
+                pfile.setFileName(filename);
+                pfile.open(QIODevice::WriteOnly | QIODevice::Text);
+                if(pfile.write(output) == -1) {
+                    write_log("Fehler beim Schreiben der Ausgabedatei: " + pfile.errorString(), LOG_ERROR);
+                }
+                pfile.close();
+                fileinfo.refresh();
+                if(!query.exec("UPDATE `files` SET `lastchange` = '" + fileinfo.lastModified().toString() + "' WHERE `filename` = '" + filename + "'")) {
+                    write_log(query.lastError().text(), LOG_DB);
+                }
+                trayIcon->setIcon(QIcon(":/images/succeeded.png"));
+                reseticon->start(5 * 1000); // Icon nach 5 Sekunden zuruecksetzen
+                write_log(filename + " verarbeitet.", LOG_INFO);
+            }else{
+                write_log("Konnte " + filename + " nicht verarbeiten: Schreibzugriff nicht moeglich!", LOG_WARNING);
             }
-            pfile.close();
-            fileinfo.refresh();
-            if(!query.exec("UPDATE `files` SET `lastchange` = '"+fileinfo.lastModified().toString()+"' WHERE `filename` = '"+filename+"'")) {
-                write_log(query.lastError().text());
-            }
-            trayIcon->setIcon(QIcon(":/images/succeeded.png"));
-            reseticon->start(5 * 1000); // Icon nach 5 Sekunden zuruecksetzen
-            write_log(filename + " verarbeitet.");
         }
     }
 }
