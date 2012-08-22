@@ -36,6 +36,11 @@
 #include <QFile>
 #include "ui_rsi.h"
 
+#define LOG_INFO 0
+#define LOG_WARNING 1
+#define LOG_DB 2
+#define LOG_ERROR 3
+
 namespace Ui {
 class rsi;
 }
@@ -47,7 +52,8 @@ class rsi : public QMainWindow, Ui::rsi
     public:
         rsi(QMainWindow *parent = 0);
         ~rsi();
-        void write_log(QString message);
+        void write_log(QString message, unsigned short level);
+        QString logsym[4];
         unsigned int phase [];
 
     private slots:

@@ -23,15 +23,22 @@
  * rsi.cpp
  */
 
-#define RSI_REV "Revision 36"
+#define RSI_REV "Revision 37"
 
 #include "rsi.h"
 
 rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     setupUi(this);
 
-    write_log("re-stand-in startet.");
-    write_log(RSI_REV);
+    logsym[0] = tr("II");
+    logsym[1] = tr("WW");
+    logsym[2] = tr("DB");
+    logsym[3] = tr("EE");
+
+    qDebug() << "a";
+
+    write_log("re-stand-in startet.", LOG_INFO);
+    write_log(RSI_REV, LOG_INFO);
 
     setWindowIconText("Re-stand-in");
     setWindowIcon(QIcon(":/images/icon.png"));
@@ -98,16 +105,20 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     connect(reseticon, SIGNAL(timeout()), this, SLOT(do_reseticon()));
     connect(crontimer, SIGNAL(timeout()), this, SLOT(cron()));
 
+    qDebug() << "b";
+
     loadSettings();                                                         // Load Settings from Database
     cron();
+
+    qDebug() << "c";
 
     query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'sh'");
     query.next();
     if(query.value(query.record().indexOf("data")) != "0") {
-        write_log(tr("Setze von %1 fort.").arg(query.value(query.record().indexOf("data")).toString()));
+        write_log(tr("Setze von %1 fort.").arg(query.value(query.record().indexOf("data")).toString()), LOG_INFO);
     }
 
-    write_log("Initialisierung abgeschlossen.");
+    write_log("Initialisierung abgeschlossen.", LOG_INFO);
 }
 
 rsi::~rsi()
@@ -135,7 +146,7 @@ void rsi::cron() {
             "   `filename` != '" + input_uw->text() + "' AND"
             "   `filename` != '" + input_uw_2->text() + "'";
     if(!query.exec(sql)) {
-        write_log(query.lastError().text());
+        write_log(query.lastError().text(), LOG_DB);
     }
 }
 
@@ -160,22 +171,22 @@ void rsi::startstop(bool writeSettings) {
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
             if(!uwinfo1.exists())
-                write_log("Achtung: Zu Ueberwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")");
+                write_log("Achtung: Zu Ueberwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")", LOG_WARNING);
             uwtimer1->start(input_int->value() * 1000);
             parser1();
         }else{
-            write_log("Ueberwachung 1 nicht aktiv (keine Datei angegeben).");
+            write_log("Ueberwachung 1 nicht aktiv (keine Datei angegeben).", LOG_WARNING);
         }
         if(input_uw_2->text() != "") {
             uwinfo2.setFile(getFilename(input_uw_2->text(), 1));
             if(!uwinfo2.exists())
-                write_log("Achtung: Zu Ueberwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")");
+                write_log("Achtung: Zu Ueberwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")", LOG_WARNING);
             uwtimer2->start(input_int->value() * 1000);
             parser2();
         }else{
-            write_log("Ueberwachung 2 nicht aktiv (keine Datei angegeben).");
+            write_log("Ueberwachung 2 nicht aktiv (keine Datei angegeben).", LOG_WARNING);
         }
-        write_log("Dienst gestartet.");
+        write_log("Dienst gestartet.", LOG_INFO);
     }else{
         // Ueberwachung stoppen:
         uwtimer1->stop();
@@ -190,7 +201,7 @@ void rsi::startstop(bool writeSettings) {
         footText->setEnabled(true);
         table_static->setEnabled(true);
         table_dynamic->setEnabled(true);
-        write_log("Dienst gestoppt.");
+        write_log("Dienst gestoppt.", LOG_INFO);
     }
     if(writeSettings) {
         QString sql = "UPDATE `settings` SET `data` = '";
@@ -216,8 +227,8 @@ void rsi::do_reseticon() {
 }
 
 // Private Funktionen:
-void rsi::write_log(QString message) {
-    log->appendPlainText(QDateTime::currentDateTime().toString() + ": " + message);
+void rsi::write_log(QString message, unsigned short level) {
+    log->appendPlainText(QDateTime::currentDateTime().toString() + ": [" + logsym[level] + "] " + message);
 }
 QString rsi::getFilename(QString raw, int offset) {
     if(raw.contains("%1"))

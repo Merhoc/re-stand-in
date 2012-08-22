@@ -49,20 +49,20 @@ void rsi::change_uw2() {
 // ------------------------------------------------- Datumsformat -------------------------------------------------------------
 void rsi::change_dform() {
     if(!query.exec("UPDATE `settings` SET `data` = '" + input_dform->text() + "' WHERE `setting` = 'dform'")) {
-        write_log(query.lastError().text());
+        write_log(query.lastError().text(), LOG_ERROR);
     }
 }
 // ------------------------------------------------- Ueberpruefungsintervall --------------------------------------------------
 void rsi::change_int() {
     if(!query.exec("UPDATE `settings` SET `data` = '" + input_int->text() + "' WHERE `setting` = 'int'")) {
-        write_log(query.lastError().text());
+        write_log(query.lastError().text(), LOG_ERROR);
     }
 }
 // =================================================        Kopf/Fuss          ================================================
 // ------------------------------------------------- Header / Footer ----------------------------------------------------------
 void rsi::change_header() {
     if(!query.exec("UPDATE `settings` SET `data` = '" + headText->toPlainText() + "' WHERE `setting` = 'header'")) {
-        write_log(query.lastError().text());
+        write_log(query.lastError().text(), LOG_ERROR);
     }
     headSave->setEnabled(false);
     headReset->setEnabled(false);
@@ -73,7 +73,7 @@ void rsi::mod_header() {
 }
 void rsi::reset_header() {
     if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'header'")) {
-        write_log(query.lastError().text());
+        write_log(query.lastError().text(), LOG_ERROR);
     }
     query.next();
     headText->clear();
@@ -87,14 +87,14 @@ void rsi::mod_footer() {
 }
 void rsi::change_footer() {
     if(!query.exec("UPDATE `settings` SET `data` = '" + footText->toPlainText() + "' WHERE `setting` = 'footer'")) {
-        write_log(query.lastError().text());
+        write_log(query.lastError().text(), LOG_ERROR);
     }
     footSave->setEnabled(false);
     headReset->setEnabled(false);
 }
 void rsi::reset_footer() {
     if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
-        write_log(query.lastError().text());
+        write_log(query.lastError().text(), LOG_ERROR);
     }
     query.next();
     footText->clear();
@@ -110,10 +110,10 @@ void rsi::change_static(QStandardItem* item) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  +statmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Statische Aenderung nicht gespeichert: Suchwort existiert bereits!");
+                write_log("Statische Aenderung nicht gespeichert: Suchwort existiert bereits!", LOG_WARNING);
             }else{
                 if(!query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')")) {
-                    write_log(query.lastError().text());
+                    write_log(query.lastError().text(), LOG_ERROR);
                 }
                 query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  + statmodel->item(item->row(), 0)->text() + "'");
                 query.next();
@@ -144,13 +144,13 @@ void rsi::change_dynamic(QStandardItem* item) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Dynamische Aenderung nicht gespeichert: Suchwort existiert bereits!");
+                write_log("Dynamische Aenderung nicht gespeichert: Suchwort existiert bereits!", LOG_WARNING);
             }else{
                 if(!query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
                            "    '" + dynmodel->item(item->row(), 0)->text() + "',"
                            "    '" + dynmodel->item(item->row(), 1)->text() + "',"
                            "    '" + dynmodel->item(item->row(), 2)->text() + "')")) {
-                    write_log(query.lastError().text());
+                    write_log(query.lastError().text(), LOG_ERROR);
                 }
                 query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
                 query.next();
@@ -176,16 +176,16 @@ void rsi::change_dynamic(QStandardItem* item) {
     }
 }
 
-// Einstellungen laden:
+// ================================================= Einstellungen laden: =====================================================
 
 void rsi::loadSettings() {
     if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'uw1'")) {
         // Standard-Datenbank erstellen
-        write_log("Lade Standardeinstellungen");
+        write_log("Lade Standardeinstellungen", LOG_INFO);
         QStringList sqls = SQL_standard_settings.split("!#!");
         for (int i = 0; i < sqls.size(); ++i) {
             if(!query.exec( sqls.at(i).toLocal8Bit().constData() )) {
-                write_log("Fehler beim Laden der Standarddatenbank - Einstellungen ueberpruefen!");
+                write_log("Fehler beim Laden der Standarddatenbank - Einstellungen ueberpruefen!", LOG_WARNING);
             }
         }
         visible();
@@ -194,7 +194,7 @@ void rsi::loadSettings() {
     reset_header();
     reset_footer();
     // Einstellungen Laden:
-    write_log("Lade Einstellungen");
+    write_log("Lade Einstellungen", LOG_INFO);
     query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'uw1'");
     query.next();
     input_uw->setText(query.value(query.record().indexOf("data")).toString());
