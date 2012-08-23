@@ -23,7 +23,7 @@
  * rsi.cpp
  */
 
-#define RSI_REV "Revision 39"
+#define RSI_REV "Revision 40"
 
 #include "rsi.h"
 
@@ -66,6 +66,7 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setContextMenu(trayIconMenu);
     trayIcon->setIcon(QIcon(":/images/stopped.png"));
+    trayIcon->setToolTip("re-stand-in");
     trayIcon->show();
 
     uwtimer1 = new QTimer(this);
