@@ -23,7 +23,7 @@
  * rsi.cpp
  */
 
-#define RSI_REV "Revision 40"
+#define RSI_REV "Revision 42"
 
 #include "rsi.h"
 
