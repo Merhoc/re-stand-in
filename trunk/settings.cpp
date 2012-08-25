@@ -105,20 +105,20 @@ void rsi::reset_footer() {
 // =================================================        Statisch        ===================================================
 void rsi::change_static(QStandardItem* item) {
     // Item in Statisch-Tabelle geaendert
-    if(item->text() != "<neu>") {
+    if(item->text() != tr("<neu>")) {
         if(item->row() == statmodel->rowCount() - 1) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  +statmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Statische Aenderung nicht gespeichert: Suchwort existiert bereits!", LOG_WARNING);
+                write_log(tr("Statische Aenderung nicht gespeichert: Suchwort existiert bereits!"), LOG_WARNING);
             }else{
                 if(!query.exec("INSERT INTO `static` (`search`, `set`) VALUES('" + statmodel->item(item->row(), 0)->text() + "', '" + statmodel->item(item->row(), 1)->text() + "')")) {
                     write_log(query.lastError().text(), LOG_ERROR);
                 }
                 query.exec("SELECT `rowid` FROM `static` WHERE `search` = '"  + statmodel->item(item->row(), 0)->text() + "'");
                 query.next();
-                statmodel->setItem(item->row() + 1, 0, new QStandardItem("<neu>"));
-                statmodel->setItem(item->row() + 1, 1, new QStandardItem("<neu>"));
+                statmodel->setItem(item->row() + 1, 0, new QStandardItem(tr("<neu>")));
+                statmodel->setItem(item->row() + 1, 1, new QStandardItem(tr("<neu>")));
                 statmodel->setItem(item->row(), 2, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
                 statmodel->item(item->row(), 2)->setEnabled(false);
             }
@@ -139,12 +139,12 @@ void rsi::change_static(QStandardItem* item) {
 // =================================================        Dynamisch       ===================================================
 void rsi::change_dynamic(QStandardItem* item) {
     // Item in Dynamisch-Tabellle geaendert
-    if(dynmodel->item(item->row(), 0)->text() != "<neu>") {
+    if(dynmodel->item(item->row(), 0)->text() != tr("<neu>")) {
         if(item->row() == dynmodel->rowCount() - 1) {
             // Neue Zeile
             query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
             if(query.next()) {
-                write_log("Dynamische Aenderung nicht gespeichert: Suchwort existiert bereits!", LOG_WARNING);
+                write_log(tr("Dynamische Aenderung nicht gespeichert: Suchwort existiert bereits!"), LOG_WARNING);
             }else{
                 if(!query.exec("INSERT INTO `dynamic` (`search`, `set`, `maxval`) VALUES("
                            "    '" + dynmodel->item(item->row(), 0)->text() + "',"
@@ -154,8 +154,8 @@ void rsi::change_dynamic(QStandardItem* item) {
                 }
                 query.exec("SELECT `rowid` FROM `dynamic` WHERE `search` = '"  + dynmodel->item(item->row(), 0)->text() + "'");
                 query.next();
-                dynmodel->setItem(item->row() + 1, 0, new QStandardItem("<neu>"));
-                dynmodel->setItem(item->row() + 1, 1, new QStandardItem("<neu>"));
+                dynmodel->setItem(item->row() + 1, 0, new QStandardItem(tr("<neu>")));
+                dynmodel->setItem(item->row() + 1, 1, new QStandardItem(tr("<neu>")));
                 dynmodel->setItem(item->row() + 1, 2, new QStandardItem("1"));
                 dynmodel->setItem(item->row(), 3, new QStandardItem(query.value(query.record().indexOf("rowid")).toString()));
                 dynmodel->item(item->row(), 3)->setEnabled(false);
@@ -181,11 +181,11 @@ void rsi::change_dynamic(QStandardItem* item) {
 void rsi::loadSettings() {
     if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'uw1'")) {
         // Standard-Datenbank erstellen
-        write_log("Lade Standardeinstellungen", LOG_INFO);
+        write_log(tr("Lade Standardeinstellungen"), LOG_INFO);
         QStringList sqls = SQL_standard_settings.split("!#!");
         for (int i = 0; i < sqls.size(); ++i) {
             if(!query.exec( sqls.at(i).toLocal8Bit().constData() )) {
-                write_log("Fehler beim Laden der Standarddatenbank - Einstellungen ueberpruefen!", LOG_WARNING);
+                write_log(tr("Fehler beim Laden der Standarddatenbank - Einstellungen ueberpruefen!"), LOG_WARNING);
             }
         }
         visible();
@@ -194,7 +194,7 @@ void rsi::loadSettings() {
     reset_header();
     reset_footer();
     // Einstellungen Laden:
-    write_log("Lade Einstellungen", LOG_INFO);
+    write_log(tr("Lade Einstellungen"), LOG_INFO);
     query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'uw1'");
     query.next();
     input_uw->setText(query.value(query.record().indexOf("data")).toString());
@@ -227,8 +227,8 @@ void rsi::loadSettings() {
         statmodel->item(row, 2)->setEnabled(false);
         row ++;
     }
-    statmodel->setItem(row, 0, new QStandardItem("<neu>"));
-    statmodel->setItem(row, 1, new QStandardItem("<neu>"));
+    statmodel->setItem(row, 0, new QStandardItem(tr("<neu>")));
+    statmodel->setItem(row, 1, new QStandardItem(tr("<neu>")));
     table_static->setModel(statmodel);
     table_static->setColumnWidth(0, 250);
     table_static->setColumnWidth(1, 340);
@@ -249,8 +249,8 @@ void rsi::loadSettings() {
         dynmodel->item(row, 3)->setEnabled(false);
         row ++;
     }
-    dynmodel->setItem(row, 0, new QStandardItem("<neu>"));
-    dynmodel->setItem(row, 1, new QStandardItem("<neu>"));
+    dynmodel->setItem(row, 0, new QStandardItem(tr("<neu>")));
+    dynmodel->setItem(row, 1, new QStandardItem(tr("<neu>")));
     dynmodel->setItem(row, 2, new QStandardItem("1"));
     table_dynamic->setModel(dynmodel);
     table_dynamic->setColumnWidth(0, 200);
