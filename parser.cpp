@@ -104,7 +104,7 @@ void rsi::parser(QString filename) {
 
                 // Fertige Zeile zwischenspeichern:
                 output.append(line);
-                output.append(tr("\r\n"));
+                output.append("\r\n");
             } while (!line.isNull());
             if(!query.exec("SELECT `data` FROM `settings` WHERE `setting` = 'footer'")) {
                 write_log(query.lastError().text(), LOG_DB);
@@ -116,7 +116,7 @@ void rsi::parser(QString filename) {
                 pfile.setFileName(filename);
                 pfile.open(QIODevice::WriteOnly | QIODevice::Text);
                 if(pfile.write(output) == -1) {
-                    write_log("Fehler beim Schreiben der Ausgabedatei: " + pfile.errorString(), LOG_ERROR);
+                    write_log(tr("Fehler beim Schreiben der Ausgabedatei: %1").arg(pfile.errorString()), LOG_ERROR);
                 }
                 pfile.close();
                 fileinfo.refresh();
@@ -125,9 +125,9 @@ void rsi::parser(QString filename) {
                 }
                 trayIcon->setIcon(QIcon(":/images/succeeded.png"));
                 reseticon->start(5 * 1000); // Icon nach 5 Sekunden zuruecksetzen
-                write_log(filename + " verarbeitet.", LOG_INFO);
+                write_log(tr("%1 verarbeitet.").arg(filename), LOG_INFO);
             }else{
-                write_log("Konnte " + filename + " nicht verarbeiten: Schreibzugriff nicht moeglich!", LOG_WARNING);
+                write_log(tr("Konnte %1 nicht verarbeiten: Schreibzugriff nicht moeglich!").arg(filename), LOG_WARNING);
             }
         }
     }

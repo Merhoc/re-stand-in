@@ -30,12 +30,12 @@
 rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     setupUi(this);
 
-    logsym[0] = tr("II");
-    logsym[1] = tr("WW");
-    logsym[2] = tr("DB");
-    logsym[3] = tr("EE");
+    logsym[0] = "II";
+    logsym[1] = "WW";
+    logsym[2] = "DB";
+    logsym[3] = "EE";
 
-    write_log("re-stand-in startet.", LOG_INFO);
+    write_log(tr("re-stand-in startet."), LOG_INFO);
     write_log(RSI_REV, LOG_INFO);
 
     setWindowIconText("Re-stand-in");
@@ -47,7 +47,7 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
     db.setDatabaseName("rsi.SQLite3");
     if(!db.open()) {
         QMessageBox::critical(0, tr("Kann Einstellungen nicht lesen/speichern!"),
-                              tr("Ein Problem mit der Datenbank ist aufgetreten!")+db.lastError().text(),
+                              tr("Ein Problem mit der Datenbank ist aufgetreten: %1").arg(db.lastError().text()),
                               QMessageBox::Cancel, QMessageBox::NoButton);
         quit();
     }
@@ -116,7 +116,7 @@ rsi::rsi(QMainWindow *parent) : QMainWindow(parent) {
         write_log(tr("Setze von %1 fort.").arg(query.value(query.record().indexOf("data")).toString()), LOG_INFO);
     }
 
-    write_log("Initialisierung abgeschlossen.", LOG_INFO);
+    write_log(tr("Initialisierung abgeschlossen."), LOG_INFO);
 }
 
 rsi::~rsi()
@@ -169,22 +169,22 @@ void rsi::startstop(bool writeSettings) {
         if(input_uw->text() != "") {
             uwinfo1.setFile(getFilename(input_uw->text()));
             if(!uwinfo1.exists())
-                write_log("Achtung: Zu Ueberwachende Datei 1 existiert nicht! (" + getFilename(input_uw->text()) + ")", LOG_WARNING);
+                write_log(tr("Achtung: Zu Ueberwachende Datei 1 existiert nicht! (") + getFilename(input_uw->text()) + ")", LOG_WARNING);
             uwtimer1->start(input_int->value() * 1000);
             parser1();
         }else{
-            write_log("Ueberwachung 1 nicht aktiv (keine Datei angegeben).", LOG_WARNING);
+            write_log(tr("Ueberwachung 1 nicht aktiv (keine Datei angegeben)."), LOG_WARNING);
         }
         if(input_uw_2->text() != "") {
             uwinfo2.setFile(getFilename(input_uw_2->text(), 1));
             if(!uwinfo2.exists())
-                write_log("Achtung: Zu Ueberwachende Datei 2 existiert nicht! (" + getFilename(input_uw_2->text(), 1) + ")", LOG_WARNING);
+                write_log(tr("Achtung: Zu Ueberwachende Datei 2 existiert nicht! (") + getFilename(input_uw_2->text(), 1) + ")", LOG_WARNING);
             uwtimer2->start(input_int->value() * 1000);
             parser2();
         }else{
-            write_log("Ueberwachung 2 nicht aktiv (keine Datei angegeben).", LOG_WARNING);
+            write_log(tr("Ueberwachung 2 nicht aktiv (keine Datei angegeben)."), LOG_WARNING);
         }
-        write_log("Dienst gestartet.", LOG_INFO);
+        write_log(tr("Dienst gestartet."), LOG_INFO);
     }else{
         // Ueberwachung stoppen:
         uwtimer1->stop();
@@ -199,7 +199,7 @@ void rsi::startstop(bool writeSettings) {
         footText->setEnabled(true);
         table_static->setEnabled(true);
         table_dynamic->setEnabled(true);
-        write_log("Dienst gestoppt.", LOG_INFO);
+        write_log(tr("Dienst gestoppt."), LOG_INFO);
     }
     if(writeSettings) {
         QString sql = "UPDATE `settings` SET `data` = '";
@@ -231,6 +231,3 @@ QString rsi::getFilename(QString raw, int offset) {
     else
         return raw;
 }
-
-#include "settings.cpp"
-#include "parser.cpp"

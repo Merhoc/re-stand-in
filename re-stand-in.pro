@@ -10,7 +10,7 @@ TARGET = re-stand-in
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
+SOURCES += main.cpp \
         rsi.cpp \
     settings.cpp \
     parser.cpp \
@@ -22,3 +22,5 @@ HEADERS  += rsi.h \
 FORMS    += rsi.ui
 
 RESOURCES += resources.qrc
+
+TRANSLATIONS = rsi_en.ts

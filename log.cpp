@@ -55,8 +55,8 @@ void rsi::send_report() {
 
     netman.post(request, data);
 
-    write_log("Bericht gesendet.", LOG_INFO);
-    sendReport->setText("Hochgeladen.");
+    write_log(tr("Bericht gesendet."), LOG_INFO);
+    sendReport->setText(tr("Hochgeladen."));
 }
 
 #endif // LOG_CPP
